@@ -60,17 +60,22 @@ const NewNavbar = () => {
             </li>
             <li>
               <a href="#" className="tracking-wide font-bold block py-2 px-3 text-black dark:text-white rounded hover:underline md:p-0 md:dark:text-white">
-                About
+                Shop
               </a>
             </li>
             <li>
               <a href="#" className="tracking-wide  font-bold block py-2 px-3 text-black dark:text-white rounded hover:underline md:p-0 md:dark:text-white">
-                Services
+                Donate
               </a>
             </li>
             <li>
               <a href="#" className="tracking-wide font-bold block py-2 px-3 text-black dark:text-white rounded hover:underline md:p-0 md:dark:text-white">
                 Contact
+              </a>
+            </li>
+            <li>
+              <a href="#" className="tracking-wide font-bold block py-2 px-3 text-black dark:text-white rounded hover:underline md:p-0 md:dark:text-white">
+                About
               </a>
             </li>
           </ul>

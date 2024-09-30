@@ -14,9 +14,9 @@ const Newsletter = () => {
 
 
   return (
-    <div className="py-15 md:py-15 lg:py-30">
-      <div className=" container mx-auto px-5 rounded-lg xl:max-w-screen-xl">
-        <div className="px-5 rounded-lg bg-white dark:bg-gray-900 lg:flex lg:justify-center lg:items-center lg:p-10 shadow-lg dark:shadow-none">
+    <div className="py-15 md:py-15 lg:py-30  dark:bg-black">
+      <div className=" container mx-auto px-5 rounded-lg xl:max-w-screen-xl ">
+        <div className=" border-2 p-3 border-black  dark:border-white  px-5 rounded-lg bg-white dark:bg-black lg:flex lg:justify-center lg:items-center lg:p-10 shadow-lg dark:shadow-none">
           <div className="lg:w-1/2">
             <h1 className="text-3xl font-bold text-center text-gray-900 dark:text-white md:text-4xl lg:text-left">
               Sign up for our Newsletter
@@ -26,7 +26,7 @@ const Newsletter = () => {
             </p>
             <form className="mt-5 sm:mx-auto sm:flex sm:max-w-lg lg:mx-0" onSubmit={handleSubmit}>
               <input
-                className="block w-full px-5 py-3 outline-none border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 transition duration-300"
+                className="block w-full px-5 py-3 outline-none border border-gray-300 dark:border-black rounded-lg shadow-sm bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-200 dark:focus:border-[#900C3F] dark:focus:ring-2 dark:focus:ring-[#900C3F] focus:border-[#998200] focus:ring-2 focus:ring-[#998200] transition duration-300"
                 type="email"
                 placeholder="Your e-mail"
                 value={email}
