@@ -5,11 +5,7 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        cherryMatte: {
-          DEFAULT: '#D2042D', // Base cherry red
-          light: '#E3425D', // Lighter shade
-          dark: '#A00220', // Darker shade
-        },
+        'customRed': '#C72840',
       },
       keyframes: {
         animation: {
