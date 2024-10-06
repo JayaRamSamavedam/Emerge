@@ -7,18 +7,19 @@ import Donationfrom from "./Components/Donation.tsx"
 import NewNavbar from "./Components/NewNavbar";
 import Home from "./Components/Home";
 import Footer from "./Components/Footer";
+import Shop from "./Components/Shop";
 
 function App() {
   return (
     <>
-    <NewNavbar/>
+  
     <Router>
-      <div className="App">
-        <h1>Donation Platform</h1>
+    <NewNavbar/>
         <Routes>
+      
           <Route path="/" element={<Home/>}/>
           <Route path="/donation" element={<DonationForm />} />
-
+          <Route path="/Shop" element={<Shop/>}/>
           {/* Success route after successful donation */}
           <Route path="/success" element={<Success />} />
 
@@ -26,7 +27,6 @@ function App() {
           <Route path="/cancel" element={<Cancel />} />
           <Route path="/donate" element={<Donationfrom/>}/>
         </Routes>
-      </div>
     </Router>
     <Footer/>
     </>

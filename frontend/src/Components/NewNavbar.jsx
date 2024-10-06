@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Switcher from './Switcher';
-
+import { Link } from 'react-router-dom';
 const NewNavbar = () => {
   // State to control mobile menu visibility
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -84,20 +84,20 @@ const NewNavbar = () => {
           >
             <ul className="flex flex-col p-4 md:p-0 mt-4 font-medium  rounded-lg bg-white dark:bg-black md:space-x-8 rtl:space-x-reverse md:flex-row md:mt-0 md:border-0 md:bg-white transition-colors duration-300">
               <li>
-                <a
-                  href="#"
+                <Link
+                  to="/"
                   className=" tracking-wide font-bold block py-2 px-3 text-black dark:text-white rounded hover:underline md:p-0 md:dark:text-white"
                 >
                   Home
-                </a>
+                </Link>
               </li>
               <li>
-                <a
-                  href="#"
+                <Link
+                  to="/Shop"
                   className="tracking-wide font-bold block py-2 px-3 text-black dark:text-white rounded hover:underline md:p-0 md:dark:text-white"
                 >
                   Shop
-                </a>
+                </Link>
               </li>
               <li>
                 <a
