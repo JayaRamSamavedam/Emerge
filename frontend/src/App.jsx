@@ -8,6 +8,7 @@ import NewNavbar from "./Components/NewNavbar";
 import Home from "./Components/Home";
 import Footer from "./Components/Footer";
 import Shop from "./Components/Shop";
+import Donate from "./Components/Donate";
 
 function App() {
   return (
@@ -22,10 +23,8 @@ function App() {
           <Route path="/Shop" element={<Shop/>}/>
           {/* Success route after successful donation */}
           <Route path="/success" element={<Success />} />
-
-        
           <Route path="/cancel" element={<Cancel />} />
-          <Route path="/donate" element={<Donationfrom/>}/>
+          <Route path="/donate" element={<Donate/>}/>
         </Routes>
     </Router>
     <Footer/>

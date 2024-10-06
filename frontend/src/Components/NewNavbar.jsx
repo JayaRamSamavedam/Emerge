@@ -100,12 +100,12 @@ const NewNavbar = () => {
                 </Link>
               </li>
               <li>
-                <a
-                  href="#"
+                <Link
+                  to="/donate"
                   className="tracking-wide  font-bold block py-2 px-3 text-black dark:text-white rounded hover:underline md:p-0 md:dark:text-white"
                 >
                   Donate
-                </a>
+                </Link>
               </li>
               <li>
                 <a
