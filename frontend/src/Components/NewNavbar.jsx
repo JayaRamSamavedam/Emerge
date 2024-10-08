@@ -1,25 +1,20 @@
 import React, { useState } from 'react';
 import Switcher from './Switcher';
 import { Link } from 'react-router-dom';
+
 const NewNavbar = () => {
-  // State to control mobile menu visibility
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  // State to control modal visibility
   const [isModalOpen, setIsModalOpen] = useState(false);
-  // State to toggle between login and signup
   const [isLoginForm, setIsLoginForm] = useState(true);
 
-  // Function to toggle the menu open and close
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
-  // Function to toggle modal open and close
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
   };
 
-  // Function to toggle between login and signup forms
   const switchForm = () => {
     setIsLoginForm(!isLoginForm);
   };
@@ -30,29 +25,30 @@ const NewNavbar = () => {
         <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
           {/* Logo with Bordered Box */}
           <a href="/" className="flex items-center space-x-3 rtl:space-x-reverse">
-            <div className="border-2 border-black px-4 py-2 sm:px-6 sm:py-3 md:px-8 md:py-3 lg:px-12 lg:py-4 dark:border-white">
-              <span className="text-black text-xl sm:text-2xl md:text-3xl lg:text-4xl tracking-wide sm:tracking-wider md:tracking-widest font-normal dark:text-white">
+            <div className="border-2 border-black px-2 py-1 sm:px-4 sm:py-2 md:px-6 md:py-3 lg:px-8 lg:py-3 dark:border-white">
+              <span className="text-black text-xl sm:text-2xl md:text-3xl lg:text-4xl tracking-wide sm:tracking-wider font-normal dark:text-white">
                 EMERGE
               </span>
             </div>
           </a>
 
-          <div className="flex md:order-2 space-x-3 md:space-x-0 rtl:space-x-reverse">
+          <div className="flex md:order-2 space-x-3 rtl:space-x-reverse">
             <button
               type="button"
               onClick={toggleModal}
-              className="text-white bg-black hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-4 py-2 text-center transition-all duration-300 ease-in-out dark:bg-white dark:text-black dark:hover:bg-gray-200 dark:focus:ring-gray-400 shadow-lg hover:shadow-xl"
+              className="text-white bg-black hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-3 py-1 md:px-4 md:py-2 transition-all duration-300 ease-in-out dark:bg-white dark:text-black dark:hover:bg-gray-200 dark:focus:ring-gray-400 shadow-lg hover:shadow-xl"
             >
               Login/SignUp
             </button>
-            <div className="text-black dark:text-white font-medium bg-inherit text-sm px-5 py-2 text-center transition-transform duration-300 hover:scale-105">
+            <div className="text-black dark:text-white font-medium bg-inherit text-sm px-3 py-1 md:px-5 md:py-2 transition-transform duration-300 hover:scale-105">
               <Switcher />
             </div>
+
             {/* Hamburger menu button */}
             <button
               onClick={toggleMenu}
               type="button"
-              className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-800 dark:focus:ring-gray-600 transition-colors duration-300 ease-in-out"
+              className="inline-flex items-center p-2 w-8 h-8 justify-center text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-800 dark:focus:ring-gray-600 transition-colors duration-300 ease-in-out"
               aria-controls="navbar-sticky"
               aria-expanded={isMenuOpen ? 'true' : 'false'}
             >
@@ -82,11 +78,11 @@ const NewNavbar = () => {
             }`}
             id="navbar-sticky"
           >
-            <ul className="flex flex-col p-4 md:p-0 mt-4 font-medium  rounded-lg bg-white dark:bg-black md:space-x-8 rtl:space-x-reverse md:flex-row md:mt-0 md:border-0 md:bg-white transition-colors duration-300">
+            <ul className="flex flex-col p-4 md:p-0 mt-4 font-medium rounded-lg bg-white dark:bg-black md:space-x-8 rtl:space-x-reverse md:flex-row md:mt-0 md:border-0 md:bg-white transition-colors duration-300">
               <li>
                 <Link
                   to="/"
-                  className=" tracking-wide font-bold block py-2 px-3 text-black dark:text-white rounded hover:underline md:p-0 md:dark:text-white"
+                  className="tracking-wide font-bold block py-2 px-2 text-black dark:text-white rounded hover:underline md:p-0"
                 >
                   Home
                 </Link>
@@ -94,7 +90,7 @@ const NewNavbar = () => {
               <li>
                 <Link
                   to="/Shop"
-                  className="tracking-wide font-bold block py-2 px-3 text-black dark:text-white rounded hover:underline md:p-0 md:dark:text-white"
+                  className="tracking-wide font-bold block py-2 px-2 text-black dark:text-white rounded hover:underline md:p-0"
                 >
                   Shop
                 </Link>
@@ -102,23 +98,23 @@ const NewNavbar = () => {
               <li>
                 <Link
                   to="/donate"
-                  className="tracking-wide  font-bold block py-2 px-3 text-black dark:text-white rounded hover:underline md:p-0 md:dark:text-white"
+                  className="tracking-wide font-bold block py-2 px-2 text-black dark:text-white rounded hover:underline md:p-0"
                 >
                   Donate
                 </Link>
               </li>
               <li>
-                <a
-                  href="#"
-                  className="tracking-wide font-bold block py-2 px-3 text-black dark:text-white rounded hover:underline md:p-0 md:dark:text-white"
+                <Link
+                  to="/contactus"
+                  className="tracking-wide font-bold block py-2 px-2 text-black dark:text-white rounded hover:underline md:p-0"
                 >
                   Contact
-                </a>
+                </Link>
               </li>
               <li>
                 <a
                   href="#"
-                  className="tracking-wide font-bold block py-2 px-3 text-black dark:text-white rounded hover:underline md:p-0 md:dark:text-white"
+                  className="tracking-wide font-bold block py-2 px-2 text-black dark:text-white rounded hover:underline md:p-0"
                 >
                   About
                 </a>
@@ -159,7 +155,6 @@ const NewNavbar = () => {
 
             {/* Form Fields */}
             <form className="space-y-4">
-              {/* Email Field */}
               <div>
                 <label
                   htmlFor="email"
@@ -176,7 +171,6 @@ const NewNavbar = () => {
                 />
               </div>
 
-              {/* Password Field */}
               <div>
                 <label
                   htmlFor="password"
@@ -193,7 +187,6 @@ const NewNavbar = () => {
                 />
               </div>
 
-              {/* Additional Field for Sign Up */}
               {!isLoginForm && (
                 <div>
                   <label
@@ -212,7 +205,6 @@ const NewNavbar = () => {
                 </div>
               )}
 
-              {/* Submit Button */}
               <button
                 type="submit"
                 className="w-full px-4 py-2 bg-black text-white rounded-lg font-medium hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-200 transition-all"
@@ -221,7 +213,6 @@ const NewNavbar = () => {
               </button>
             </form>
 
-            {/* Toggle Form Link */}
             <p className="text-center text-sm text-gray-600 dark:text-gray-400 mt-4">
               {isLoginForm ? (
                 <>
