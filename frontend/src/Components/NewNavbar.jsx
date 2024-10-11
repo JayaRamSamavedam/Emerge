@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Switcher from './Switcher';
 import { Link } from 'react-router-dom';
 
@@ -6,6 +6,22 @@ const NewNavbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoginForm, setIsLoginForm] = useState(true);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 50) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -21,9 +37,11 @@ const NewNavbar = () => {
 
   return (
     <>
-      <nav className="bg-white dark:bg-black fixed w-full z-20 top-0 left-0 shadow-lg border-b border-gray-300 dark:border-gray-700 transition-all duration-300 ease-in-out">
+      <nav className={`fixed w-full z-20 top-0 left-0  transition-colors duration-300 ease-in-out ${
+        isScrolled ? 'bg-white dark:bg-black shadow-lg border-b border-gray-300 dark:border-gray-700'  : 'bg-transparent hover:bg-white hover:dark:bg-black'
+      }`}>
         <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
-          {/* Logo with Bordered Box */}
+          {/* Logo */}
           <a href="/" className="flex items-center space-x-3 rtl:space-x-reverse">
             <div className="border-2 border-black px-2 py-1 sm:px-4 sm:py-2 md:px-6 md:py-3 lg:px-8 lg:py-3 dark:border-white">
               <span className="text-black text-xl sm:text-2xl md:text-3xl lg:text-4xl tracking-wide sm:tracking-wider font-normal dark:text-white">
@@ -32,23 +50,24 @@ const NewNavbar = () => {
             </div>
           </a>
 
+          {/* Buttons */}
           <div className="flex md:order-2 space-x-3 rtl:space-x-reverse">
             <button
               type="button"
               onClick={toggleModal}
-              className="text-white bg-black hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-3 py-1 md:px-4 md:py-2 transition-all duration-300 ease-in-out dark:bg-white dark:text-black dark:hover:bg-gray-200 dark:focus:ring-gray-400 shadow-lg hover:shadow-xl"
+              className="text-white bg-black hover:bg-gray-800 focus:ring-4 focus:outline-none font-medium rounded-lg text-sm px-3 py-1 transition-all duration-300 dark:bg-white dark:text-black dark:hover:bg-gray-200 shadow-lg"
             >
               Login/SignUp
             </button>
-            <div className="text-black dark:text-white font-medium bg-inherit text-sm px-3 py-1 md:px-5 md:py-2 transition-transform duration-300 hover:scale-105">
+            <div className="text-black dark:text-white font-medium p-2">
               <Switcher />
             </div>
 
-            {/* Hamburger menu button */}
+            {/* Hamburger */}
             <button
               onClick={toggleMenu}
               type="button"
-              className="inline-flex items-center p-2 w-8 h-8 justify-center text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-800 dark:focus:ring-gray-600 transition-colors duration-300 ease-in-out"
+              className="inline-flex items-center p-2 w-8 h-8 justify-center text-sm text-gray-500 md:hidden hover:bg-gray-100 focus:outline-none dark:text-gray-400 dark:hover:bg-gray-800"
               aria-controls="navbar-sticky"
               aria-expanded={isMenuOpen ? 'true' : 'false'}
             >
@@ -78,44 +97,30 @@ const NewNavbar = () => {
             }`}
             id="navbar-sticky"
           >
-            <ul className="flex flex-col p-4 md:p-0 mt-4 font-medium rounded-lg bg-white dark:bg-black md:space-x-8 rtl:space-x-reverse md:flex-row md:mt-0 md:border-0 md:bg-white transition-colors duration-300">
+            <ul className={` font-extrabold flex flex-col p-4 md:p-0 mt-4  rounded-lg  md:space-x-8 rtl:space-x-reverse md:flex-row md:mt-0 md:border-0  transition-colors duration-300
+              ${ isScrolled ? 'bg-white dark:bg-black '  : 'bg-transparent  hover:bg-white hover:dark:bg-black '}`}>
               <li>
-                <Link
-                  to="/"
-                  className="tracking-wide font-bold block py-2 px-2 text-black dark:text-white rounded hover:underline md:p-0"
-                >
+                <Link to="/" className="block py-2 px-2 text-black dark:text-white hover:underline">
                   Home
                 </Link>
               </li>
               <li>
-                <Link
-                  to="/Shop"
-                  className="tracking-wide font-bold block py-2 px-2 text-black dark:text-white rounded hover:underline md:p-0"
-                >
+                <Link to="/Shop" className="block py-2 px-2 text-black dark:text-white hover:underline">
                   Shop
                 </Link>
               </li>
               <li>
-                <Link
-                  to="/donate"
-                  className="tracking-wide font-bold block py-2 px-2 text-black dark:text-white rounded hover:underline md:p-0"
-                >
+                <Link to="/donate" className="block py-2 px-2 text-black dark:text-white hover:underline">
                   Donate
                 </Link>
               </li>
               <li>
-                <Link
-                  to="/contactus"
-                  className="tracking-wide font-bold block py-2 px-2 text-black dark:text-white rounded hover:underline md:p-0"
-                >
+                <Link to="/contactus" className="block py-2 px-2 text-black dark:text-white hover:underline">
                   Contact
                 </Link>
               </li>
               <li>
-                <a
-                  href="#"
-                  className="tracking-wide font-bold block py-2 px-2 text-black dark:text-white rounded hover:underline md:p-0"
-                >
+                <a href="#" className="block py-2 px-2 text-black dark:text-white hover:underline">
                   About
                 </a>
               </li>
@@ -124,7 +129,7 @@ const NewNavbar = () => {
         </div>
       </nav>
 
-      {/* Modal Component */}
+      {/* Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-30 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-lg">

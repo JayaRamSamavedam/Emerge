@@ -25,7 +25,7 @@ const ContactUs = () => {
 
   return (
     <div className="pt-14 sm:pt-20 md:pt-24 lg:pt-28 bg-white dark:bg-black flex items-center justify-center">
-      <div className="container mx-auto flex flex-col md:flex-row bg-white  dark:bg-black rounded-lg shadow-xl border-b-8 border-gray-200 dark:border-gray-700 p-4 sm:p-6 lg:p-10">
+      <div className="container flex flex-col md:flex-row bg-white  dark:bg-black rounded-lg shadow-xl border-b-8 border-gray-200 dark:border-gray-700 p-4 sm:p-6 lg:p-10">
         
         {/* Left Side: Animated Icons */}
         <div className="md:w-1/2 w-full p-4 flex items-center justify-center">

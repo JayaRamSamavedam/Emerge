@@ -90,7 +90,6 @@ const HomePage = () => {
 </section>
 
 
-
         {/* Newsletter Signup */}
         <div className="p-3 dark:bg-black">
           <Newsletter />

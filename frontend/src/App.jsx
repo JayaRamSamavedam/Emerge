@@ -10,6 +10,7 @@ import Footer from "./Components/Footer";
 import Shop from "./Components/Shop";
 import Donate from "./Components/Donate";
 import ContactUs from "./Components/Contact";
+import NewHomePage from "./Components/NewHomePage";
 
 function App() {
   return (
@@ -19,7 +20,8 @@ function App() {
     <NewNavbar/>
         <Routes>
       
-          <Route path="/" element={<Home/>}/>
+          {/* <Route path="/" element={<Home/>}/> */}
+          <Route path="/" element={<NewHomePage/>}/>
           <Route path="/donation" element={<DonationForm />} />
           <Route path="/Shop" element={<Shop/>}/>
           <Route path="/contactus" element={<ContactUs/>}/> 
