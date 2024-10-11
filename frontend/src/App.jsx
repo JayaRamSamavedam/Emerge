@@ -11,6 +11,7 @@ import Shop from "./Components/Shop";
 import Donate from "./Components/Donate";
 import ContactUs from "./Components/Contact";
 import NewHomePage from "./Components/NewHomePage";
+import AboutUs from "./Components/AboutUs";
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
           <Route path="/success" element={<Success />} />
           <Route path="/cancel" element={<Cancel />} />
           <Route path="/donate" element={<Donate/>}/>
+          <Route path="/aboutUs" element={<AboutUs/>}/>
         </Routes>
     </Router>
     <Footer/>

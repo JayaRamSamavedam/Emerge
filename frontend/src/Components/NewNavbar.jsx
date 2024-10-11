@@ -120,9 +120,9 @@ const NewNavbar = () => {
                 </Link>
               </li>
               <li>
-                <a href="#" className="block py-2 px-2 text-black dark:text-white hover:underline">
+                <Link  to="/aboutUs" className="block py-2 px-2 text-black dark:text-white hover:underline">
                   About
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
