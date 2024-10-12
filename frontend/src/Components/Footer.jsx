@@ -2,7 +2,7 @@ import React from 'react';
 
 const Footer = () => {
   return (
-    <footer className="w-full  bottom-0 z-10 py-6 bg-white shadow-2xl  border-t-black dark:bg-black" >
+    <footer className="w-full  bottom-0 z-10 py-6 bg-[#F2EFE4] shadow-2xl  border-t-black dark:bg-black" >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto">
           {/* Logo Section */}

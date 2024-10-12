@@ -1,16 +1,43 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Switcher from './Switcher';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
-
+import { FaMoon, FaSun, FaSearch, FaUserCircle } from 'react-icons/fa';
 
 const NewNavbar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const isHome = location.pathname === '/';
+  const [isSearchVisible, setIsSearchVisible] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoginForm, setIsLoginForm] = useState(true);
   const [isScrolled, setIsScrolled] = useState(false);
+  const searchRef = useRef(null); // To track the modal container
+
+  const handleSearch = () => {
+    if (searchTerm.trim()) {
+      setIsSearchVisible(false)
+      navigate(`/filters?search=${encodeURIComponent(searchTerm)}`);
+      setSearchTerm('')
+    }
+  };
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setIsSearchVisible(false); // Close the modal if the click is outside
+      }
+    };
+
+    if (isSearchVisible) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isSearchVisible]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -26,7 +53,9 @@ const NewNavbar = () => {
       window.removeEventListener('scroll', handleScroll);
     };
   }, []);
-
+  const toggleSearch = () => {
+    setIsSearchVisible(!isSearchVisible); // Toggle search modal visibility
+  };
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
@@ -63,8 +92,13 @@ const NewNavbar = () => {
             >
               Login/SignUp
             </button>
-            <div className="text-black dark:text-white font-medium p-2">
-              <Switcher />
+            <div className="text-black dark:text-white">
+            <button
+              onClick={toggleSearch}
+              className="p-2 md:p-3 lg:p-4 text-black dark:text-gray-300 hover:text-[#A1887F] dark:hover:text-white focus:outline-none"
+            >
+              <FaSearch size={15} />
+            </button>
             </div>
 
             {/* Hamburger */}
@@ -132,6 +166,34 @@ const NewNavbar = () => {
           </div>
         </div>
       </nav>
+
+      {isSearchVisible && (
+        <div className="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center">
+          <div ref={searchRef} className="relative bg-white dark:bg-gray-800 rounded-lg p-6 w-96 shadow-lg">
+            <div className="flex items-center">
+              <input
+                type="text"
+                placeholder="Search..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="flex-grow bg-[#EFEBE9] dark:bg-gray-900 dark:text-white rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#A1887F]"
+              />
+              <button
+                onClick={handleSearch}
+                className="ml-2 text-gray-500 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white focus:outline-none"
+              >
+                <FaSearch size={20} />
+              </button>
+              <button
+                onClick={toggleSearch}
+                className="ml-2 text-gray-500 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white focus:outline-none"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal */}
       {isModalOpen && (

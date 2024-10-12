@@ -24,13 +24,15 @@ const ContactUs = () => {
   };
 
   return (
-    <div className="pt-14 sm:pt-20 md:pt-24 lg:pt-28 bg-white dark:bg-black flex items-center justify-center">
-      <div className="container flex flex-col md:flex-row bg-white  dark:bg-black rounded-lg shadow-xl border-b-8 border-gray-200 dark:border-gray-700 p-4 sm:p-6 lg:p-10">
+    <div className="pt-14 sm:pt-20 md:pt-24 lg:pt-28 bg-[#F2EFE4] dark:bg-black flex items-center justify-center">
+      <div className="container flex flex-col md:flex-row bg-[#F2EFE4]  dark:bg-black rounded-lg   border-gray-200 dark:border-gray-700 p-4 sm:p-6 lg:p-10">
         
         {/* Left Side: Animated Icons */}
-        <div className="md:w-1/2 w-full p-4 flex items-center justify-center">
-          <AnimatedBeamMultipleOutputDemo className="h-64 sm:h-72 md:h-80 lg:h-full " />
-        </div>
+        <div className="w-full sm:w-1/2 md:w-2/3 lg:w-3/4 xl:w-2/3 h-auto p-4 flex flex-row items-center justify-center overflow-hidden">
+  <AnimatedBeamMultipleOutputDemo className="w-full h-auto" />
+</div>
+
+
 
         {/* Right Side: Contact Form */}
         <div className="md:w-1/2 w-full p-4 sm:p-6 lg:p-10 flex flex-col justify-center">
@@ -54,7 +56,7 @@ const ContactUs = () => {
                   onChange={handleChange}
                   required
                   placeholder="Enter your full name"
-                  className="w-full p-3 sm:p-4 border border-gray-300 dark:border-gray-700 bg-transparent dark:bg-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-600 dark:focus:ring-gray-400 transition-shadow shadow-sm hover:shadow-md"
+                  className="w-full p-3 sm:p-4 border bg-white border-gray-300 dark:border-gray-700 bg-transparent dark:bg-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-600 dark:focus:ring-gray-400 transition-shadow shadow-sm hover:shadow-md"
                 />
               </div>
               <div className="w-full">
@@ -69,7 +71,7 @@ const ContactUs = () => {
                   onChange={handleChange}
                   required
                   placeholder="Enter your email"
-                  className="w-full p-3 sm:p-4 border border-gray-300 dark:border-gray-700 bg-transparent dark:bg-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-600 dark:focus:ring-gray-400 transition-shadow shadow-sm hover:shadow-md"
+                  className="w-full p-3  bg-white sm:p-4 border border-gray-300 dark:border-gray-700 bg-transparent dark:bg-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-600 dark:focus:ring-gray-400 transition-shadow shadow-sm hover:shadow-md"
                 />
               </div>
             </div>
@@ -83,7 +85,7 @@ const ContactUs = () => {
                 value={formData.category}
                 onChange={handleChange}
                 required
-                className="w-full p-3 sm:p-4 border border-gray-300 dark:border-gray-700 bg-transparent dark:bg-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-600 dark:focus:ring-gray-400 transition-shadow shadow-sm hover:shadow-md"
+                className="w-full p-3 bg-white  sm:p-4 border border-gray-300 dark:border-gray-700 bg-transparent dark:bg-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-600 dark:focus:ring-gray-400 transition-shadow shadow-sm hover:shadow-md"
               >
                 <option value="prayer request">Prayer Request</option>
                 <option value="outreach impact">Outreach Impact</option>
@@ -102,13 +104,13 @@ const ContactUs = () => {
                 onChange={handleChange}
                 required
                 placeholder="Share your thoughts with us..."
-                className="w-full p-3 sm:p-4 border border-gray-300 dark:border-gray-700 bg-transparent dark:bg-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-600 dark:focus:ring-gray-400 transition-shadow shadow-sm hover:shadow-md"
+                className="w-full bg-white  p-3 sm:p-4 border border-gray-300 dark:border-gray-700 bg-transparent dark:bg-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-600 dark:focus:ring-gray-400 transition-shadow shadow-sm hover:shadow-md"
               ></textarea>
             </div>
             <div className="text-center">
               <button
                 type="submit"
-                className="px-6 sm:px-8 py-3 sm:py-4 bg-black text-white font-semibold text-base sm:text-lg rounded-full hover:bg-gray-900 dark:bg-gray-800 dark:hover:bg-gray-700 transition-colors duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                className="px-6  sm:px-8 py-3 sm:py-4 bg-black text-white font-semibold text-base sm:text-lg rounded-full hover:bg-gray-900 dark:bg-gray-800 dark:hover:bg-gray-700 transition-colors duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
               >
                 Send Message
               </button>

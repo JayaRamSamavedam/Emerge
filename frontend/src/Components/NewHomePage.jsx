@@ -61,7 +61,7 @@ const staggerContainer = {
 
 const NewHomePage = () => {
   return (
-    <>
+    <d>
       {/* Hero Section */}
       <motion.div
   className="relative w-full h-screen"  // Full viewport height for hero section
@@ -122,19 +122,21 @@ const NewHomePage = () => {
 
 
       {/* Section with right-side image and left-side content */}
+      <section className='bg-[#F2EFE4]'>
       <motion.section
-  className="flex flex-col lg:flex-row items-center justify-between p-10 lg:p-24 bg-white shadow-md dark:bg-gray-900"
+  className="flex flex-col lg:flex-row items-center justify-between p-10 lg:p-24 bg-[#F2EFE4] shadow-md dark:bg-gray-900"
   initial="hidden"
   whileInView="visible"
   viewport={{ once: true }}
   variants={staggerContainer}
 >
   {/* Left Side Image */}
-  <motion.div className="w-full lg:w-1/2 mb-10 lg:mb-0" variants={fadeIn}>
+  <div className="bg-white w-full h-full  rounded-lg flex flex-col lg:flex-row items-center  ">
+  <motion.div className="w-full h-full lg:w-1/2 mb-10 lg:mb-0 p-8" variants={fadeIn}>
     <motion.img
       src={img}
       alt=" Pouch"
-      className="w-full h-auto object-cover rounded-lg"
+      className=" w-full h-auto object-cover rounded-lg"
       whileHover={{ scale: 1.05 }}
     />
   </motion.div>
@@ -156,7 +158,9 @@ const NewHomePage = () => {
       <a href="/shop" className="bg-black text-white py-4 px-8 rounded-lg hover:bg-[#998200] transition">Shop</a>
     </div>
   </motion.div>
+  </div>
 </motion.section>
+</section>
 
 
 
@@ -226,13 +230,13 @@ const NewHomePage = () => {
 
       {/* Product Grid */}
       <motion.section
-        className="bg-white dark:bg-gray-900"
+        className="bg-[#F2EFE4] dark:bg-gray-900 py-6"
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true }}
         variants={staggerContainer}
       >
-        <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6 sm:py-24 lg:max-w-7xl lg:px-8">
+        <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6 sm:py-12 lg:max-w-7xl lg:px-8  bg-white rounded-lg">
           <motion.h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white" variants={fadeIn}>
             Customers also purchased
           </motion.h2>
@@ -270,42 +274,45 @@ const NewHomePage = () => {
       </motion.section>
 
       {/* Another card with left-side image and right-side centered content */}
+      <section className='bg-[#F2EFE4]'>
       <motion.section
-        className="flex flex-col lg:flex-row items-center justify-between p-6 lg:p-16 bg-white border-gray-200 shadow-md dark:bg-gray-900"
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true }}
-        variants={staggerContainer}
-      >
-        {/* Left Side Image */}
-        <motion.div className="w-full lg:w-1/2 mb-6 lg:mb-0" variants={fadeIn}>
-          <motion.img
-            src={img1}
-            alt=" Pouch"
-            className="w-full h-auto object-cover rounded-lg"
-            whileHover={{ scale: 1.05 }}
-          />
-        </motion.div>
+  className="flex flex-col lg:flex-row items-center justify-between p-10 lg:p-24 bg-[#F2EFE4] shadow-md dark:bg-gray-900"
+  initial="hidden"
+  whileInView="visible"
+  viewport={{ once: true }}
+  variants={staggerContainer}
+>
+  {/* Left Side Image */}
+  <div className="bg-white w-full h-full  rounded-lg flex flex-col lg:flex-row items-center  ">
+  <motion.div className="w-full h-full lg:w-1/2 mb-10 lg:mb-0 p-8" variants={fadeIn}>
+    <motion.img
+      src={img1}
+      alt=" Pouch"
+      className=" w-full h-auto object-cover rounded-lg"
+      whileHover={{ scale: 1.05 }}
+    />
+  </motion.div>
 
-        {/* Right Side Content */}
-        <motion.div
-          className="w-full lg:w-1/2 flex flex-col justify-center text-left p-6 lg:p-12 text-black"
-          variants={fadeIn}
-        >
-          <h4 className="text-gray-500 uppercase tracking-wide mb-2 dark:text-gray-400">Limited Time Only</h4>
-          <h2 className="text-4xl font-bold text-black dark:text-white mb-4">Free  Pouch</h2>
-          <p className="text-lg text-gray-700 dark:text-gray-300 mb-6">
-            With your purchase of 2 or more lippies. Choose from liquid lipsticks, lip blushes,
-            lip oils, lip tints, balms, glosses, plumpers & more.
-          </p>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mb-8">
-            Exclusions may apply. While supplies last. Ends October 13 @ 11:59pm PST.
-          </p>
-          <div className="flex space-x-4">
-            <a href="/shop" className="bg-black text-white py-3 px-6 rounded-lg hover:bg-[#998200] transition">Shop</a>
-          </div>
-        </motion.div>
-      </motion.section>
+  {/* Right Side Content */}
+  <motion.div
+    className="w-full lg:w-1/2 flex flex-col justify-center text-left p-8 lg:p-16 text-black"
+    variants={fadeIn}
+  >
+    <h4 className="text-gray-500 uppercase tracking-wide text-lg mb-4 dark:text-gray-400">Limited Time Only</h4>
+    <h2 className="text-5xl font-bold text-black dark:text-white mb-6">Free  Pouch</h2>
+    <p className="text-xl text-gray-700 dark:text-gray-300 mb-6">
+      With your purchase of 2 or more lippies. Choose from liquid lipsticks, lip blushes, lip oils, lip tints, balms, glosses, plumpers & more.
+    </p>
+    <p className="text-md text-gray-500 dark:text-gray-400 mb-8">
+      Exclusions may apply. While supplies last. Ends October 13 @ 11:59pm PST.
+    </p>
+    <div className="flex space-x-4">
+      <a href="/shop" className="bg-black text-white py-4 px-8 rounded-lg hover:bg-[#998200] transition">Shop</a>
+    </div>
+  </motion.div>
+  </div>
+</motion.section>
+</section>
       <section>
      <section className="relative w-full aspect-w-16 aspect-h-9 md:aspect-w-16 md:aspect-h-8 lg:aspect-w-16 lg:aspect-h-6 overflow-hidden">
   {/* Background Image */}
@@ -373,7 +380,7 @@ const NewHomePage = () => {
      </section>
       {/* Impact Section */}
       <motion.section
-        className="px-4 lg:px-10 py-20 bg-white dark:bg-black"
+        className="px-4 lg:px-10 py-20 bg-[#F2EFE4] dark:bg-black"
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true }}
@@ -396,7 +403,7 @@ const NewHomePage = () => {
 
         <motion.div className="max-w-screen-lg mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
           {/* Testimonial 1 */}
-          <motion.div className="bg-gray-100 dark:bg-gray-800 p-6 rounded-lg shadow-md" variants={fadeIn}>
+          <motion.div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md" variants={fadeIn}>
             <img
               src={Testimonial}
               alt="Testimonial"
@@ -409,7 +416,7 @@ const NewHomePage = () => {
           </motion.div>
 
           {/* Testimonial 2 */}
-          <motion.div className="bg-gray-100 dark:bg-gray-800 p-6 rounded-lg shadow-md" variants={fadeIn}>
+          <motion.div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md" variants={fadeIn}>
             <img
               src={Testimonial}
               alt="Testimonial"
@@ -427,14 +434,14 @@ const NewHomePage = () => {
      
       {/* Newsletter Signup */}
       <motion.div
-        className="p-6 lg:p-10 bg-white dark:bg-black"
+        className="p-6 lg:p-10 bg-[#F2EFE4] dark:bg-black"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8 }}
       >
         <Newsletter />
       </motion.div>
-    </>
+    </d>
   );
 }
 

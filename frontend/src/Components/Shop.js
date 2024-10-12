@@ -1,5 +1,6 @@
 import React,{useState} from "react";
 import { motion } from "framer-motion";
+import SearchModal from "./ui/searchnew";
 export default function Shop() {
     const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
      const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
@@ -102,7 +103,7 @@ export default function Shop() {
   ];
 
   return (
-    <div className="bg-[#DEDBD1]">
+    <div className="pt-14 sm:pt-16 md:pt-20 lg:pt-24 bg-[#F2EFE4]">
         <section>
     
         <section className="relative w-full aspect-w-16 aspect-h-9 md:aspect-w-16 md:aspect-h-8 lg:aspect-w-16 lg:aspect-h-6 overflow-hidden">
@@ -136,7 +137,7 @@ export default function Shop() {
 
       {/* Main Heading */}
       <motion.h1
-        className="text-3xl sm:text-4xl lg:text-5xl font-extrabold mb-4 text-gray-900 dark:text-white"
+        className="text-3xl sm:text-4xl lg:text-5xl font-extrabold mb-4  text-gray-900 dark:text-white"
         initial={{ opacity: 0, y: 20 }}  // Slide up for the main heading
         animate={{ opacity: 1, y: 0 }}   // Animate to position
         transition={{ duration: 0.6, delay: 0.8 }} // Delay for staggered effect
@@ -157,7 +158,7 @@ export default function Shop() {
       {/* CTA Button */}
       <motion.a
         href="/shop"
-        className="inline-block bg-white text-black py-3 px-6 rounded-lg font-medium hover:bg-gray-200 transition dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700"
+        className="inline-block bg-[#F2EFE4] text-black py-3 px-6 rounded-lg font-medium hover:bg-gray-200 transition dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700"
         initial={{ opacity: 0, scale: 0.8 }}  // Starts scaled down
         animate={{ opacity: 1, scale: 1 }}    // Grows to normal size
         transition={{ duration: 0.6, delay: 1.2 }} // Delay for smooth entrance
@@ -170,62 +171,64 @@ export default function Shop() {
 </section>
      </section>
 
-     <section className="p-6 bg-white justify-center">
+     <section className="p-6 bg-[#F2EFE4] justify-center">
   {/* Heading */}
-  <h2 className=" text-2xl font-bold mb-6 text-center">Categories</h2>
+  <h2 className=" text-2xl font-bold mb-6 text-center text-black">Categories</h2>
 
   {/* Grid Layout */}
-  <div className="justify-center grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5 ">
+  <div className="justify-center grid grid-cols-2 gap-1 sm:grid-cols-3 lg:grid-cols-4">
   {/* Men Category */}
   <a href="/men" className="block transform hover:scale-105 transition-transform duration-300">
-    <img className="rounded-full w-32 h-auto max-w-full sm:w-28 lg:w-32 mx-auto " src="https://via.placeholder.com/150x150?text=Shirts" alt="Men Category"/>
-    <p className="text-center mt-2 text-lg font-semibold">Men</p>
+    <img className="rounded-full w-32 h-auto max-w-full sm:w-28 lg:w-32 mx-auto text-white" src="https://via.placeholder.com/150x150?text=Shirts" alt="Men Category"/>
+    <p className="text-center mt-2 text-lg font-semibold text-black ">Men</p>
   </a>
 
   {/* Women Category */}
   <a href="/women" className="block transform hover:scale-105 transition-transform duration-300">
     <img className="rounded-full w-32 h-auto max-w-full sm:w-28 lg:w-32 mx-auto" src="https://via.placeholder.com/150x150?text=Shoes" alt="Women Category"/>
-    <p className="text-center mt-2 text-lg font-semibold">Women</p>
+    <p className="text-center mt-2 text-lg font-semibold text-black ">Women</p>
   </a>
 
   {/* Kids Category */}
   <a href="/kids" className="block transform hover:scale-105 transition-transform duration-300">
     <img className="rounded-full w-32 h-auto max-w-full sm:w-28 lg:w-32 mx-auto" src="https://via.placeholder.com/150x150?text=Pants" alt="Kids Category"/>
-    <p className="text-center mt-2 text-lg font-semibold">Kids</p>
+    <p className="text-center mt-2 text-lg font-semibold text-black ">Kids</p>
   </a>
 
   {/* Accessories Category */}
   <a href="/accessories" className="block transform hover:scale-105 transition-transform duration-300">
     <img className="rounded-full w-32 h-auto max-w-full sm:w-28 lg:w-32 mx-auto" src="https://via.placeholder.com/150x150?text=Accessories" alt="Accessories Category"/>
-    <p className="text-center mt-2 text-lg font-semibold">Accessories</p>
+    <p className="text-center mt-2 text-lg font-semibold text-black ">Accessories</p>
   </a>
 
   {/* View All */}
-  <a href="/all-categories" className="block transform hover:scale-105 transition-transform duration-300">
-    <img className="rounded-full w-32 h-auto max-w-full sm:w-28 lg:w-32 mx-auto" src="https://via.placeholder.com/150x150?text=View+All" alt="View All Categories"/>
-    <p className="text-center mt-2 text-lg font-semibold">View All</p>
-  </a>
+
 </div>
+
 
 </section>
 
-    <section class=" bg-white  antialiased dark:bg-black md:py-12">
+    <section class=" bg-[#F2EFE4] antialiased dark:bg-black md:py-12">
   <div class="mx-auto max-w-screen-xl px-2 2xl:px-0">
     <div class="">
     <motion.section
-        className="bg-white dark:bg-gray-900"
+        className=" bg-white dark:bg-gray-900"
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true }}
         variants={staggerContainer}
       >
-        <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6 sm:py-24 lg:max-w-7xl lg:px-8">
-          <motion.div class="mb-4 items-end justify-between space-y-4 sm:flex sm:space-y-0 md:mb-8" variants={fadeIn}>
-      <div>
+        <div className="mx-auto max-w-2xl px-4 py-4 sm:px-6 sm:py-6 lg:max-w-7xl lg:px-8 sm:justify-center sm:text-center justify-center">
+          <motion.div class="mb-4 items-end justify-between space-y-4 sm:flex sm:space-y-0 md:mb-8 sm:text-center" variants={fadeIn}>
+          <div className="">
+  <h2 className="mt-3 text-xl font-semibold text-gray-900 dark:text-white sm:text-2xl text-left sm:text-center">
+    Shop
+  </h2>
+</div>
+
+    
+      <div class="flex items-center space-x-4 ">
         
-        <h2 class="mt-3 text-xl font-semibold text-gray-900 dark:text-white sm:text-2xl">Shop</h2>
-      </div>
-      <div class="flex items-center space-x-4">
         <button onClick={toggleFilterModal}  type="button" class="flex w-full items-center justify-center rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-900 hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:outline-none focus:ring-4 focus:ring-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-gray-700 sm:w-auto">
           <svg class="-ms-0.5 me-2 h-4 w-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
             <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M18.796 4H5.204a1 1 0 0 0-.753 1.659l5.302 6.058a1 1 0 0 1 .247.659v4.874a.5.5 0 0 0 .2.4l3 2.25a.5.5 0 0 0 .8-.4v-7.124a1 1 0 0 1 .247-.659l5.302-6.059c.566-.646.106-1.658-.753-1.658Z" />
@@ -344,7 +347,7 @@ export default function Shop() {
       </div>
       
     </motion.div>
-          <div className="mt-6 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8">
+          <div className="mt-6 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8 ">
             {products.map((product) => (
               <motion.div
                 key={product.id}
@@ -352,7 +355,7 @@ export default function Shop() {
                 variants={fadeIn}
                 whileHover={{ scale: 1.05 }}
               >
-                <div className="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-md bg-gray-200 dark:bg-gray-700 lg:aspect-none group-hover:opacity-75 lg:h-80">
+                <div className="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-md bg-white dark:bg-gray-700 lg:aspect-none group-hover:opacity-75 lg:h-80">
                   <img
                     alt={product.imageAlt}
                     src={product.imageSrc}
@@ -379,8 +382,8 @@ export default function Shop() {
                                             
                                             
     </div>
-    <div class="w-full text-center">
-      <button type="button" class="rounded-lg border border-gray-200 bg-white px-5 py-2.5 text-sm font-medium text-gray-900 hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:outline-none focus:ring-4 focus:ring-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-gray-700">Show more</button>
+    <div class="w-full text-center p-5">
+      <button type="button" class=" rounded-lg border border-gray-200 bg-white px-5 py-2.5 text-sm font-medium text-gray-900 hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:outline-none focus:ring-4 focus:ring-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-gray-700">Show more</button>
     </div>
   </div>
   {/* <!-- Filter modal --> */}
@@ -468,7 +471,7 @@ export default function Shop() {
 
               {/* Categories */}
               <div className="mb-4">
-                <h4 className="mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                <h4 className="mb-2 text-sm font-medium text-black dark:text-white">
                   Categories
                 </h4>
                 <div className="grid grid-cols-2 gap-2">

@@ -14,9 +14,9 @@ const Newsletter = () => {
 
 
   return (
-    <div className="py-15 md:py-15 lg:py-30  dark:bg-black">
+    <div className="py-15 md:py-15 lg:py-30 bg-[#F2EFE4] dark:bg-black">
       <div className=" container mx-auto px-5 rounded-lg xl:max-w-screen-xl ">
-        <div className=" border-2 p-3 border-black  dark:border-white  px-5 rounded-lg bg-white dark:bg-black lg:flex lg:justify-center lg:items-center lg:p-10 shadow-lg dark:shadow-none">
+        <div className=" border-2 p-3 border-black   px-5 rounded-lg bg-white lg:flex lg:justify-center lg:items-center lg:p-10 shadow-lg dark:shadow-none">
           <div className="lg:w-1/2">
             <h1 className="text-3xl font-bold text-center text-gray-900 dark:text-white md:text-4xl lg:text-left">
               Sign up for our Newsletter
