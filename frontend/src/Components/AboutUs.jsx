@@ -204,6 +204,37 @@ const AboutUs = () => {
             <p>Pastor John Doe founded Emerge Ministry with the mission to reach the marginalized and spread hope in the community.</p>
           </VerticalTimelineElement>
           {/* Other timeline elements */}
+          <VerticalTimelineElement
+            className="vertical-timeline-element--work"
+            contentStyle={{ background: 'black', color: '#fff' }}
+            contentArrowStyle={{ borderRight: '7px solid black' }}
+            date="2015"
+            dateClassName="text-black dark:text-white"
+            iconStyle={{ background: 'black', color: '#fff' }}
+            icon={<i className="fas fa-hand-holding-heart"></i>}
+          >
+            <h3 className="vertical-timeline-element-title">Outreach Expanded</h3>
+            <p>
+              With the help of generous donations, Emerge Ministry expanded its outreach efforts, feeding and supporting
+              over 1,000 individuals.
+            </p>
+          </VerticalTimelineElement>
+
+          <VerticalTimelineElement
+            className="vertical-timeline-element--work"
+            contentStyle={{ background: 'black', color: '#fff' }}
+            contentArrowStyle={{ borderRight: '7px solid black' }}
+            date="2020"
+            dateClassName="text-black dark:text-white"
+            iconStyle={{ background: 'black', color: '#fff' }}
+            icon={<i className="fas fa-hands-helping"></i>}
+          >
+            <h3 className="vertical-timeline-element-title">Community Center Opened</h3>
+            <p>
+              Emerge Ministry opened a community center, providing education, health services, and spiritual guidance
+              for all.
+            </p>
+          </VerticalTimelineElement>
         </VerticalTimeline>
       </motion.div>
 
