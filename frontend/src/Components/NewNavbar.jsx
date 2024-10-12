@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import Switcher from './Switcher';
 import { Link } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
+
 
 const NewNavbar = () => {
+  const location = useLocation();
+  const isHome = location.pathname === '/';
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoginForm, setIsLoginForm] = useState(true);
@@ -38,7 +42,7 @@ const NewNavbar = () => {
   return (
     <>
       <nav className={`fixed w-full z-20 top-0 left-0  transition-colors duration-300 ease-in-out ${
-        isScrolled ? 'bg-white dark:bg-black shadow-lg border-b border-gray-300 dark:border-gray-700'  : 'bg-transparent hover:bg-white hover:dark:bg-black'
+        isScrolled ? 'bg-white dark:bg-black shadow-lg border-b border-gray-300 dark:border-gray-700'  :  isHome ? 'bg-transparent hover:bg-white hover:dark:bg-black': 'bg-white dark:bg-black shadow-lg border-b border-gray-300 dark:border-gray-700'
       }`}>
         <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
           {/* Logo */}

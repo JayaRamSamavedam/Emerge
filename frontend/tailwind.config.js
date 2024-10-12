@@ -6,13 +6,14 @@ const {
 module.exports = {
   darkMode: 'class',
   theme: {
+    colors: {
+      'custom-offwhite': '#dedbd1',
+    },
     extend: {
       animation: {
         aurora: "aurora 60s linear infinite",
       },
-      colors: {
-        'customRed': '#C72840',
-      },
+      
       keyframes: {
         aurora: {
           from: {
