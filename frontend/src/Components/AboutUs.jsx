@@ -90,7 +90,7 @@ const AboutUs = () => {
               className="text-4xl font-bold tracking-wide text-white md:text-6xl lg:text-7xl"
               initial={{ y: -30, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.6, ease: "back.out(1.7)" }} // Smooth easing
+              transition={{ duration: 0.6, ease: "anticipate" }} // Changed easing to anticipate
             >
               About Us
             </motion.h1>
@@ -98,7 +98,7 @@ const AboutUs = () => {
               className="text-xl font-bold mt-4 opacity-70 md:text-2xl lg:text-3xl"
               initial={{ y: 30, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.8, delay: 0.3, ease: "back.out(1.7)" }}
+              transition={{ duration: 0.8, delay: 0.3, ease: "easeInOut" }} // Using easeInOut
             >
               Discover the Cosmic Collection with us.
             </motion.p>
@@ -133,7 +133,7 @@ const AboutUs = () => {
             className="w-full lg:w-1/2 flex flex-col justify-center text-left p-8 lg:p-16 text-black"
             variants={fadeIn}
           >
-            <h4 className="text-gray-500 uppercase tracking-wide text-lg mb-4 dark:text-gray-400">About Pastor</h4>
+            <h4 className="text-gray-500 uppercase tracking-wide text-lg mb-4 dark:text-gray-400">Limited Time Only</h4>
             <h2 className="text-5xl font-bold text-black dark:text-white mb-6">Free Pouch</h2>
             <p className="text-xl text-gray-700 dark:text-gray-300 mb-6">
               With your purchase of 2 or more lippies. Choose from liquid lipsticks, lip blushes, lip oils, and more.
