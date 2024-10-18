@@ -10,9 +10,9 @@ import Role from "../schema/roleSchema.js";
 //create admin user
 
 export const createCustomUser = async (req, res) => {
-  const { uname, email, phonenumber, password,userGroup } = req.body;
+  const { fullName, email, phonenumber, password,userGroup } = req.body;
 
-  if (!uname || !email || !password || !phonenumber) {
+  if (!fullName || !email || !password || !phonenumber) {
     return res.status(400).json({ error: "Please enter all the inputs" });
   }
   try {
@@ -24,7 +24,7 @@ export const createCustomUser = async (req, res) => {
     if (preuser) {
       return res.status(400).json({ error: "This user already exists in our organization" });
     } else {
-      const userregister = new User({ uname, email, phonenumber, password,userGroup:userGroup });
+      const userregister = new User({ fullName, email, phonenumber, password,userGroup:userGroup });
       const storedata = await userregister.save();
       res.status(200).json(storedata);
     }
@@ -33,11 +33,27 @@ export const createCustomUser = async (req, res) => {
   }
 };
 
+export const editUserData = async(req,res)=>{
+  console.log(req.body);
+  try
+ { 
+  const {fullName,phonenumber,password,userGroup,email} = req.body;
+ 
+  const u = await User.findOneAndUpdate({email:email},req.body);
+  console.log("dj")
+  return res.status(200).json({message:"user details updated successfully"});
+}
+catch(error){
+  console.log(error);
+  return res.status(500).json({message:error.message});
+}
+}
+
 export const deleteUser = async(req,res)=>{
-  const {email} = req.body;
+  const {id} = req.body;
   try{
-    const user = await User.findOneAndDelete({email:email});
-    return res.status(400).json(user);
+    const user = await User.findByIdAndDelete(id);
+    return res.status(200);
   }
   catch(error){
     return res.status(400).json({error:"unable to find the user"});
@@ -169,3 +185,22 @@ export const getAllUsers = async (req,res)=>{
     return res.status(500).json({"error":error.message})
   } 
 };
+
+export const getAllRoles = async(req,res)=>{
+  try{
+    const roles = await Role.find();
+    return res.status(200).json(roles);
+  }
+  catch(error){
+    return res.satus(500).json({"error":error.message});
+  }
+}
+export const getAllUserGroups = async (req,res)=>{
+  try{
+    const usergroups = await UserGroup.find();
+    return res.status(200).json(usergroups);
+  }
+  catch(error){
+    return res.status(500).json({"error":error.message});
+  }
+}

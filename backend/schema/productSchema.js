@@ -1,15 +1,8 @@
 import mongoose from 'mongoose';
 import Counter from './productCounterSchema.js';
-import ItemType from './itemtypeSchema.js';
 import Category from './categorySchema.js';
-import { noSniff } from 'helmet';
-import Brand from './brandSchema.js';
-import SubcategorySchema from './subcategorySchema.js';
+import Color from './colorSchema.js';
 const productSchema = new mongoose.Schema({
-  brandname:{
-    type:String,
-    unique:true,
-  },
   priority:{
     type:Number,
     default:0,
@@ -61,18 +54,14 @@ const productSchema = new mongoose.Schema({
     type:Number,
     default:0,
   },
-  quantity:{
-    type:Number,
-    required:true,
-  },
-  itemType: {
-    type: String,
-    required: true,
-  },
-  subcategories:{
+  sizes:{
     type:[String],
     required:false,
   },
+  colors: [{
+    colorname: { type: String, required: true },
+    colorcode: { type: String, required: true },
+  }],
   hotDeals:{
     type:Boolean,
     default:false,
@@ -86,61 +75,54 @@ const productSchema = new mongoose.Schema({
 productSchema.index({ 
   name: 'text', 
   category: 'text', 
-  subcategories: 'text', 
+  sizes: 'text', 
   description: 'text', 
-  brandname: 'text' 
+  colors:'text',
 });
 
 productSchema.pre('save', async function (next) {
   const product = this;
+
   if (!product.isNew) {
     return next();
   }
+
   try {
+    // Validate Category
     const cat = await Category.findOne({ name: product.category });
     if (!cat) {
       throw new Error("Category is invalid");
     }
-    const ite = await ItemType.findOne({ name: product.itemType });
-    if (!ite) {
-      throw new Error("Item Type is invalid");
-    }
-    const brand = await Brand.findOne({name:product.brandname});
-    if(!brand){
-      throw new Error("brand is invalid");
-    }
-    // const subcat = await SubcategorySchema.find({category:product.category});
-    if (product.subcategories.length !== 0) {
-      try {
-        const subcat = await SubcategorySchema.find({ category: product.category });
-        const subcatNames = subcat.map(item => item.name); // Assuming 'name' is the field containing the subcategory string
-    
-        const allStringsPresent = product.subcategories.every(str => subcatNames.includes(str));
-    
-        if (allStringsPresent) {
-          console.log('All strings are present in the subcategories.');
-        } else {
-          console.log('Not all strings are present in the subcategories.');
-        }
-      } catch (error) {
-        console.error('Error fetching subcategories:', error);
+
+    // Validate Colors and populate both colorname and colorcode
+    if (product.colors && product.colors.length > 0) {
+      const colorDocs = await Color.find({ colorname: { $in: product.colors.map(c => c.colorname) } });
+      if (colorDocs.length !== product.colors.length) {
+        throw new Error("One or more colors are invalid");
       }
-    } else {
-      console.log('No subcategories to check.');
+
+      // Replace the colors array with objects containing both colorname and colorcode
+      product.colors = colorDocs.map(color => ({
+        colorname: color.colorname,
+        colorcode: color.colorcode
+      }));
     }
 
+    // Generate unique product ID
     const counter = await Counter.findOneAndUpdate(
-      { _id: 'productId' }, 
+      { _id: 'productId' },
       { $inc: { seq: 1 } },
       { new: true, upsert: true }
     );
     product.productId = counter.seq;
+
     next();
   } catch (error) {
-    console.error("Error generating product ID:", error);
+    console.error("Error in product pre-save:", error);
     next(error);
   }
 });
+
 
 const Product = mongoose.model('Product', productSchema);
 

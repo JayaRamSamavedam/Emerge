@@ -17,7 +17,7 @@ router.post("/admin/user/delete",admin.deleteUser);
 
 // admin create role
 router.post("/admin/role/create",admin.createRole);
-
+router.post("/admin/user/edit",admin.editUserData)
 // admin create usergrp
 router.post("/admin/usergroup/create",admin.createUserGroups);
 
@@ -28,4 +28,7 @@ router.post("/admin/usergroup/edit",admin.updateUserGroup);
 router.post("/admin/role/edit",admin.updateRole);
 
 router.get("/admin/users",admin.getAllUsers);
+router.get("/admin/roles",admin.getAllRoles);
+router.get("/admin/usergroups",admin.getAllUserGroups);
+
 export default router;

@@ -7,55 +7,6 @@ import UserGroup from './usergroupsSchema.js';
 const SECRECT_KEY = process.env.JWT_SECRET;
 const REFRESH_SECRET_KEY = process.env.JWT_REFRESH_SECRET;
 
-// const addressSchema = new mongoose.Schema({
-//     fullName: {
-//       type: String,
-//       required: true,
-//     },
-//     email: {
-//       type: String,
-//       required: true,
-//       validate(value) {
-//         if (!validator.isEmail(value)) {
-//           throw new Error("Not a valid email");
-//         }
-//       },
-//     },
-//     companyName: {
-//       type: String,
-//       required: true,
-//     },
-//     country: {
-//       type: String,
-//       required: true,
-//     },
-//     city: {
-//       type: String,
-//       required: true,
-//     },
-//     street: {
-//       type: String,
-//       required: true,
-//     },
-//     phonenumber: {
-//       type: String,
-//       required: true,
-//       validate: {
-//         validator: function(value) {
-//           return validator.isMobilePhone(value, 'any', { strictMode: false });
-//         },
-//         message: "Not a valid mobile number"
-//       }
-//     },
-//     state: {
-//       type: String,
-//       required: true,
-//     },
-//     pin: {
-//       type: String,
-//       required: true,
-//     },
-//   });
 const userSchema = new mongoose.Schema({
   fullName: {
     type: String,

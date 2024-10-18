@@ -1,9 +1,13 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import Switcher from './Switcher';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
+import { UserContext } from "../App";
+import { Form, replace } from 'react-router-dom';
 import { FaMoon, FaSun, FaSearch, FaUserCircle } from 'react-icons/fa';
-
+import { Request, setAuthHeader, getAuthToken, getJwtCookie, flushCookies, setUserDetails } from '../helpers/axios_helper';
+import { message } from 'antd';
+import { useNavigate } from 'react-router-dom';
 const NewNavbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -15,6 +19,100 @@ const NewNavbar = () => {
   const [isLoginForm, setIsLoginForm] = useState(true);
   const [isScrolled, setIsScrolled] = useState(false);
   const searchRef = useRef(null); // To track the modal container
+  // const [isAdminDashBoard , setAdminDashboard] = useState(false);
+  const { user, setUser, visible, setvisible, redirectPath, setRedirectPath } = useContext(UserContext); // Use variables from UserContext
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [phonenumber , setphonenumber] = useState('');
+  const [confirmpassword,setconfirmpassword] = useState('')
+  const [fullName, setfullName] = useState('')
+  const [loading, setLoading] = useState(false);
+  const [isDropdownVisible, setIsDropdownVisible] = useState(false); 
+
+  const switchToSignup = () => {
+    setIsLoginForm(false);
+  };
+  const openLoginModal = () => {
+    setvisible(true); // Open login/signup modal using context
+  };
+  const handleLogout = async () => {
+    try {
+      await Request('POST', '/user/logout');
+      flushCookies();
+      setUser({ loggedIn: false });
+      message.success('Logged out successfully');
+      navigate('/',replace)
+    } catch (error) {
+      message.error('Error logging out');
+    }
+  };
+
+ 
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    if (email === '') {
+      message.error('Please enter the email');
+    } else if (password === '') {
+      message.error('Please enter the password');
+    } else {
+      const data = { email, password };
+      try {
+        setLoading(true);
+        const res = await Request('POST', '/user/login', data, setUser);
+        if (res.status === 200) {
+          message.success(res.data.message);
+          setAuthHeader(res.data.accessToken);
+          setUserDetails(res.data.user)
+
+          setUser({ loggedIn: true,details:res.data.user });
+          setLoading(false);
+          setvisible(false);
+          console.log(res.data.user.userGroup)
+          if(res.data.user.userGroup === "admin") {
+            navigate('/AdminDashboard', { replace: true });
+          } else if (redirectPath) {
+            navigate(redirectPath, { replace: true });
+          } else {
+            navigate('/filters', { replace: true });
+          }          
+        } else {
+          message.error(res.data.error);
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error('Login request failed:', error);
+        setLoading(false);
+        message.error('Login request failed');
+      }
+    }
+  };
+
+  const handleSignUp = async (e)=>{
+    e.preventDefault();
+    if (email === '') {
+      message.error('Please enter the email');
+    } else if (password === '') {
+      message.error('Please enter the password');
+    } else {
+      const data = { email, password,fullName,phonenumber };
+      try {
+        setLoading(true);
+        const res = await Request('POST', '/user/register', data, setUser);
+        if (res.status === 200) {
+          message.success(res.data.message);
+          setIsLoginForm(true);
+          setLoading(false);
+        } else {
+          message.error(res.data.error);
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error('register request failed:', error);
+        setLoading(false);
+        message.error('register request failed');
+      }
+    }
+  }
 
   const handleSearch = () => {
     if (searchTerm.trim()) {
@@ -63,10 +161,26 @@ const NewNavbar = () => {
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
   };
+  const closeLoginModal = () => {
+    setvisible(false); // Close login/signup modal using context
+  };
 
   const switchForm = () => {
     setIsLoginForm(!isLoginForm);
   };
+
+  if (loading) {
+    return (
+      <div className="flex space-x-2 justify-center items-center h-screen dark:invert">
+        <span className="sr-only">Loading...</span>
+        <div className="h-8 w-8 bg-black rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+        <div className="h-8 w-8 bg-black rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+        <div className="h-8 w-8 bg-black rounded-full animate-bounce"></div>
+      </div>
+    );
+  }
+
+
 
   return (
     <>
@@ -85,13 +199,73 @@ const NewNavbar = () => {
 
           {/* Buttons */}
           <div className="flex md:order-2 space-x-3 rtl:space-x-reverse">
+          {!user.loggedIn ? (
             <button
               type="button"
-              onClick={toggleModal}
+              onClick={openLoginModal}
               className="text-white bg-black hover:bg-gray-800 focus:ring-4 focus:outline-none font-medium rounded-lg text-sm px-3 py-1 transition-all duration-300 dark:bg-white dark:text-black dark:hover:bg-gray-200 shadow-lg"
             >
               Login/SignUp
             </button>
+          ):(
+<div
+                className="relative"
+                onMouseEnter={() => setIsDropdownVisible(true)}
+                onMouseLeave={() => setIsDropdownVisible(false)}
+              >
+                <button className="p-2 md:p-3 lg:p-4 text-sm text-[#D7CCC8] dark:text-gray-300">
+                  <FaUserCircle size={24} />
+                </button>
+
+                {/* Profile Dropdown */}
+                {isDropdownVisible && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg z-50">
+                    <ul className="py-2">
+                      <li>
+                        <Link
+                          to="/profile"
+                          className="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        >
+                          Profile
+                        </Link>
+                      </li>
+                      <li>
+                        <Link
+                          to="/wish-list"
+                          className="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        >
+                          wishList
+                        </Link>
+                      </li>
+                      <li>
+                        <Link
+                          to="/cart"
+                          className="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        >
+                          Cart
+                        </Link>
+                      </li>
+                      <li>
+                        <Link
+                          to="/orders"
+                          className="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        >
+                          Orders
+                        </Link>
+                      </li>
+                      <li>
+                        <button
+                          onClick={handleLogout}
+                          className="w-full text-left block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        >
+                          Logout
+                        </button>
+                      </li>
+                    </ul>
+                  </div>
+                )}
+              </div>
+          )}
             <div className="text-black dark:text-white">
             <button
               onClick={toggleSearch}
@@ -196,111 +370,80 @@ const NewNavbar = () => {
       )}
 
       {/* Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-30 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-lg">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                {isLoginForm ? 'Login' : 'Sign Up'}
-              </h3>
-              <button
-                onClick={toggleModal}
-                className="text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth="1.5"
-                  stroke="currentColor"
-                  className="w-6 h-6"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-            </div>
-
-            {/* Form Fields */}
-            <form className="space-y-4">
-              <div>
-                <label
-                  htmlFor="email"
-                  className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-200"
-                >
-                  Email
-                </label>
+      {visible && (
+        <div className="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center">
+          <div className="relative bg-white dark:bg-gray-800 rounded-lg p-6 w-96 shadow-lg">
+            {isLoginForm ? (
+              <>
+                <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">Login</h2>
                 <input
-                  type="email"
-                  id="email"
-                  className="block w-full px-4 py-2 text-gray-900 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="name@example.com"
-                  required
+                  type="text"
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="mb-3 w-full p-2 bg-[#EFEBE9] dark:bg-gray-900 dark:text-white rounded-md"
                 />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="password"
-                  className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-200"
-                >
-                  Password
-                </label>
                 <input
                   type="password"
-                  id="password"
-                  className="block w-full px-4 py-2 text-gray-900 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="••••••••"
-                  required
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="mb-3 w-full p-2 bg-[#EFEBE9] dark:bg-gray-900 dark:text-white rounded-md"
                 />
-              </div>
-
-              {!isLoginForm && (
-                <div>
-                  <label
-                    htmlFor="confirmPassword"
-                    className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-200"
-                  >
-                    Confirm Password
-                  </label>
-                  <input
-                    type="password"
-                    id="confirmPassword"
-                    className="block w-full px-4 py-2 text-gray-900 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Confirm your password"
-                    required
-                  />
-                </div>
-              )}
-
-              <button
-                type="submit"
-                className="w-full px-4 py-2 bg-black text-white rounded-lg font-medium hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-200 transition-all"
-              >
-                {isLoginForm ? 'Login' : 'Sign Up'}
-              </button>
-            </form>
-
-            <p className="text-center text-sm text-gray-600 dark:text-gray-400 mt-4">
-              {isLoginForm ? (
-                <>
-                  Don’t have an account?{' '}
-                  <button onClick={switchForm} className="font-medium text-blue-600 hover:underline dark:text-blue-400">
-                    Sign up
+                <button className="w-full bg-[#3E2723] text-white py-2 rounded-md" onClick={handleLogin}>
+                  Login
+                </button>
+                <p className="mt-4 text-sm text-gray-600 dark:text-gray-300">
+                  Don't have an account?{' '}
+                  <button onClick={switchToSignup} className="text-[#A1887F] hover:underline">
+                    Sign Up
                   </button>
-                </>
-              ) : (
-                <>
+                </p>
+              </>
+            ) : (
+              <>
+                <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">Sign Up</h2>
+                <input
+                  type="text"
+                  placeholder="fullName"
+                  value={fullName}
+                  onChange={(e) => setfullName(e.target.value)}
+                  className="mb-3 w-full p-2 bg-[#EFEBE9] dark:bg-gray-900 dark:text-white rounded-md"
+                />
+                <input
+                  type="text"
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="mb-3 w-full p-2 bg-[#EFEBE9] dark:bg-gray-900 dark:text-white rounded-md"
+                />
+                <input
+                  type="text"
+                  placeholder="phonenumber"
+                  value={phonenumber}
+                  onChange={(e)=> setphonenumber(e.target.value)}
+                  className="mb-3 w-full p-2 bg-[#EFEBE9] dark:bg-gray-900 dark:text-white rounded-md"
+                />
+                <input
+                  type="password"
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="mb-3 w-full p-2 bg-[#EFEBE9] dark:bg-gray-900 dark:text-white rounded-md"
+                />
+                
+                <button className="w-full bg-[#3E2723] text-white py-2 rounded-md" onClick={handleSignUp}>Sign Up</button>
+                <p className="mt-4 text-sm text-gray-600 dark:text-gray-300">
                   Already have an account?{' '}
-                  <button onClick={switchForm} className="font-medium text-blue-600 hover:underline dark:text-blue-400">
+                  <button onClick={switchForm} className="text-[#A1887F] hover:underline">
                     Login
                   </button>
-                </>
-              )}
-            </p>
+                </p>
+              </>
+            )}
+            <button onClick={closeLoginModal} className="mt-4 text-sm text-gray-600 dark:text-gray-300 hover:underline">
+              Close
+            </button>
           </div>
         </div>
       )}

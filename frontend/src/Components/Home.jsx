@@ -91,7 +91,7 @@ const HomePage = () => {
 
 
         {/* Newsletter Signup */}
-        <div className="p-3 bg-[#F2EFE4] dark:bg-black">
+        <div className="p-3 bg-[#F2EFE4]  dark:bg-black">
           <Newsletter />
         </div>
       </div>

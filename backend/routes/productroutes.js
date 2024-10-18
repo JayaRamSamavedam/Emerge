@@ -2,16 +2,24 @@ import express from 'express';
 import verifyAuthToken from '../middlewares/verifyAuthToken.js';
 import  checkRoleAccess from '../middlewares/checkroleaccess.js';
 import * as controller from '../controllers/productController.js';
-import currencyHandler from '../middlewares/currencyHandler.js';
+// import currencyHandler from '../middlewares/currencyHandler.js';
+
 import requestLogger from '../middlewares/requestlogger.js';
 const router = express.Router();
 
+
+
+router.post('/colors', controller.createColor);           // Create Color
+router.delete('/colors', controller.deleteColor);         // Delete Color
+router.get('/colors', controller.getAllColors);           // Get all colors
+router.get('/colors/:id', controller.getColorById);       // Get color by ID
+router.put('/colors', controller.editColor); 
 router.put("/admin/prod/edit/:id",verifyAuthToken,requestLogger,checkRoleAccess,controller.editProduct);
 router.post("/admin/prod/cat",verifyAuthToken,requestLogger,checkRoleAccess,controller.createCategory);
 // router.post("/admin/prod/item",verifyAuthToken,requestLogger,checkRoleAccess,controller.createItemType);
 router.post ("/admin/prod/create",verifyAuthToken,requestLogger,checkRoleAccess,controller.createProduct);
 router.get("/prod/get",verifyAuthToken,requestLogger,checkRoleAccess,controller.getAllProducts);
-router.get("/prod/getByID/:id",requestLogger,currencyHandler,controller.getProductById);
+router.get("/prod/getByID/:id",requestLogger,controller.getProductById);
 router.get("/prod",requestLogger,controller.fetchProducts);
 // router.get("/admin/getAllItemTypes",verifyAuthToken,checkRoleAccess,controller.getAllItemTypes);
 router.get("/prod/getAllCategories",controller.getAllCategories);
@@ -23,7 +31,7 @@ router.get("/prod/getAllCategories",controller.getAllCategories);
 // router.post("/prod/editComment",verifyAuthToken,checkRoleAccess,controller.editComment);
 router.delete("/admin/prod/delete/:id",verifyAuthToken,checkRoleAccess,controller.deleteProductByID);
 // productswithhotdeal
-// router.get("/prod/gethotdeals",currencyHandler,controller.productsWithHotdeal);
+// router.get("/prod/gethotdeals",controller.productsWithHotdeal);
 // getallsubcategories
 // router.get("/prod/getsubcategories",controller.getAllSubCategories);
 // deletesubcategories
@@ -37,7 +45,7 @@ router.put("/admin/prod/editcat",verifyAuthToken,checkRoleAccess,controller.edit
 // edit brand
 // router.put("/admin/prod/editbrand",verifyAuthToken,checkRoleAccess,controller.editBrand);
 // getproductsby brand
-// router.get("/prod/getproductsbybrand/:brandname",currencyHandler,controller.getProductsByBrand);
+// router.get("/prod/getproductsbybrand/:brandname",controller.getProductsByBrand);
 // getall brands
 // router.get("/prod/getallbrands",controller.getAllBrands);
 // resetprioritybybrand
@@ -68,9 +76,9 @@ router.delete("/admin/prod/deleteCategory",verifyAuthToken,checkRoleAccess,contr
 router.get("/admin/getCategory/:name",verifyAuthToken,checkRoleAccess,controller.getCategory);
 // router.get("/admin/getSubcatbycat/:category",verifyAuthToken,checkRoleAccess,controller.getSubCategoryByCategory);
 
-router.get("/prod/getProductsByCategory/:cate",currencyHandler,controller.getProductsByCategory);
+router.get("/prod/getProductsByCategory/:cate",controller.getProductsByCategory);
 // router.post("/prod/addAndRemoveFav/:productId",verifyAuthToken,checkRoleAccess,controller.AddAndRemoveFavourites);
-// router.get("/prod/getFavourites",verifyAuthToken,checkRoleAccess,currencyHandler,controller.FavouriteProducts);
+// router.get("/prod/getFavourites",verifyAuthToken,checkRoleAccess,controller.FavouriteProducts);
 router.get("/prod/search",controller.search);
 // router.get("/admin/getsubcat/:name",controller.getSubCategory);
 router.get("/prod/filter",controller.filters);

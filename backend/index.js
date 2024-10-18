@@ -62,8 +62,11 @@ import "./db/connection.js"
 import userrouter from './routes/userroutes.js';
 // import productrouter from './routes/productroutes.js';
 import adminrouter from  "./routes/adminroutes.js";
+import productrouter from "./routes/productroutes.js";
+app.use(productrouter)
 app.use(userrouter);
 app.use(adminrouter);
+
 const PORT = process.env.PORT ;
 
 app.listen(PORT,()=>{

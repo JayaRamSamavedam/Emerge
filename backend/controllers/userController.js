@@ -114,52 +114,52 @@ export const userRegister = async (req, res) => {
 };
 
 export const userLogin = async (req, res) => {
-    console.log("clearCookie",req.cookies.jwt===undefined)
-    const { email, password } = req.body;
-    console.log("I am invoked");
-    console.log(email,password)
-    if (!password || !email) {
-      return res.status(400).json({ error: "Please enter your password and email" });
-    }
-  
-    try {
-      const preuser = await users.findOne({ email: email });
-      if (preuser) {
-        const isMatch = await bcrypt.compare(password, preuser.password);
-        if (isMatch) {
-          const tokens = await preuser.generateAuthToken();
-          console.log(tokens);
-          const refreshToken = tokens.refreshToken;
-          const accessToken = tokens.accessToken;
-  
-          // secure : true
-          // httpOnly: true,
-          res.cookie('jwt', refreshToken, {
-            // sameSite: 'Lax', 
-            sameSite: 'None',
-            secure: true, // Secure flag must be true when sameSite is 'None'
-            maxAge: 24 * 60 * 60 * 1000,
-            httpOnly: true, // Recommended for security reasons
-            // domain: '.vercel.app',
-            path: '/' // Ensure this matches your application route structure
-        });
-      //   res.setHeader('Set-Cookie', [
-      //     `jwt=${refreshToken}; Secure; HttpOnly;`,
-      // ]);
-      res.setHeader("Access-Control-Allow-Credentials","true");
-  res.status(200).json({ message: "User login successfully done", accessToken:accessToken });
-        } else {
-          res.status(400).json({ error: "Invalid password" });
-        }
+  console.log("clearCookie",req.cookies.jwt===undefined)
+  const { email, password } = req.body;
+  console.log("I am invoked");
+  console.log(email,password)
+  if (!password || !email) {
+    return res.status(400).json({ error: "Please enter your password and email" });
+  }
+
+  try {
+    const preuser = await users.findOne({ email: email });
+    if (preuser) {
+      const isMatch = await bcrypt.compare(password, preuser.password);
+      if (isMatch) {
+        const tokens = await preuser.generateAuthToken();
+        console.log(tokens);
+        const refreshToken = tokens.refreshToken;
+        const accessToken = tokens.accessToken;
+
+        // secure : true
+        // httpOnly: true,
+        res.cookie('jwt', refreshToken, {
+          // sameSite: 'Lax', 
+          sameSite: 'None',
+          secure: true, // Secure flag must be true when sameSite is 'None'
+          maxAge: 24 * 60 * 60 * 1000,
+          httpOnly: true, // Recommended for security reasons
+          // domain: '.vercel.app',
+          path: '/' // Ensure this matches your application route structure
+      });
+    //   res.setHeader('Set-Cookie', [
+    //     `jwt=${refreshToken}; Secure; HttpOnly;`,
+    // ]);
+    res.setHeader("Access-Control-Allow-Credentials","true");
+res.status(200).json({ message: "User login successfully done", accessToken:accessToken ,user:{email:preuser.email,userGroup:preuser.userGroup} });
       } else {
-        res.status(400).json({ error: "Invalid email" });
+        res.status(400).json({ error: "Invalid password" });
       }
-    } catch (error) {
-      console.error("Login failed:", error);
-      res.status(400).json({ error: "Server details", error });
+    } else {
+      res.status(400).json({ error: "Invalid email" });
     }
-  };
-  
+  } catch (error) {
+    console.error("Login failed:", error);
+    res.status(400).json({ error: "Server details", error });
+  }
+};
+
   export const refreshToken = async (req, res) => {
     // console.log(req.cookies);
     console.log('hellow logout')

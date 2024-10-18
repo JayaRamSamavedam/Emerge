@@ -1,32 +1,48 @@
 import Product from '../schema/productSchema.js';
 import Category from '../schema/categorySchema.js';
 import RecentlyViewed from '../schema/recentlyViewedSchema.js';
-import Brand from '../schema/brandSchema.js';
 
+import Color from '../schema/colorSchema.js';
 
 
 export const createProduct = async (req, res) => {
-// console.log(req);
-  const { name, coverImage, images,category,description, price, discount,} = req.body;
-  try {  
+  const { name, coverImage, colornames, images, category, description, price, discount, sizes } = req.body;
+
+  try {
+    // Look up colors by colornames array
+    const colorsData = await Color.find({ colorname: { $in: colornames } });
+    if (colorsData.length !== colornames.length) {
+      return res.status(400).json({ error: 'One or more colors are invalid' });
+    }
+
+    // Map colorname and colorcode into colors array for product
+    const colors = colorsData.map(color => ({
+      colorname: color.colorname,
+      colorcode: color.colorcode,
+    }));
+
+    // Create new product
     const newProduct = new Product({
-      name:name,
-      coverImage: coverImage,
-      images: images,  
-      category: category,
-      description:description,
-      price:price,
-      discount:discount,
+      name,
+      coverImage,
+      images,
+      category,
+      description,
+      sizes,
+      colors, // Set the validated colors array
+      price,
+      discount,
       discountedPrice: price - (price * discount / 100),
-      quantity:quantity,
-      brandname:brandname,
     });
+
     const savedProduct = await newProduct.save();
     return res.status(201).json(savedProduct);
+
   } catch (error) {
     return res.status(500).json({ error: 'Error creating product', details: error.message });
   }
 };
+
 export const createCategory = async (req, res) => {
     const { name ,proImage,discount} = req.body;
     try {
@@ -50,71 +66,77 @@ export const createCategory = async (req, res) => {
       return res.json(error);
     }
   }
-export const editProduct = async (req, res) => {
-  const { id } = req.params;
-  const { name, category,description, price, discount, imagesToDelete, newImages, coverImage ,quantity} = req.body;
-  try {
-    // Find the product by ID
-    const product = await Product.findOne({ productId: Number(id) });
-    if (!product) {
-      return res.status(404).json({ error: 'Product not found' });
-    }
-    const updates = {};
-    if (name) updates.name = name;
-    if (description) updates.description = description;
-    if (price) updates.price = price;
-    if (discount) updates.discount = discount;
-    if (coverImage) updates.coverImage = coverImage;
-    if(quantity)updates.quantity=quantity;
-    if(brandname){
-      const brand = await Brand.findOne({name:brandname});
-      if(brand){
-        updates.brandname = brandname;
+  export const editProduct = async (req, res) => {
+    const { id } = req.params;
+    const { name, category, images, description, price, discount, imagesToDelete, newImages, coverImage, sizes, colornames } = req.body;
+  
+    try {
+      // Find the product by ID
+      const product = await Product.findOne({ productId: Number(id) });
+      if (!product) {
+        return res.status(404).json({ error: 'Product not found' });
       }
-    }
-    
-    // Handle image deletion
-    if (imagesToDelete && imagesToDelete.length > 0) {
-      // Filter out images marked for deletion
-      updates.images = product.images.filter(image => !imagesToDelete.includes(image));
-    }
-     // Update category if provided
-     if (category) {
+  
+      const updates = {};
+  
+      if (name) updates.name = name;
+      if (description) updates.description = description;
+      if (price) updates.price = price;
+      if (discount) updates.discount = discount;
+      if (coverImage) updates.coverImage = coverImage;
+      if (sizes) updates.sizes = sizes;
+
+      if(images) updates.images = images;
+      // Handle image deletion
+      if (imagesToDelete && imagesToDelete.length > 0) {
+        updates.images = product.images.filter(image => !imagesToDelete.includes(image));
+      }
+  
+      // Add new images if provided
+      if (newImages && newImages.length > 0) {
+        updates.images = [...product.images, ...newImages];
+      }
+  
+      // Update category if provided
+      if (category) {
         const cat = await Category.findOne({ name: category });
-        if (cat) {
-          updates.category = category; // Assuming category has an _id field
-        } else {
+        if (!cat) {
           return res.status(404).json({ error: 'Category not found' });
         }
+        updates.category = category;
       }
-
-    // if(subcategories){
-    //   updates.subcategories = subcategories
-    //  }
-    // if(newsubcategories && newsubcategories.length > 0){
-    //   updates.subcategories = [...product.subcategories,...newsubcategories];
-    // }
-    // Upload new images if any and add to the product's image array
-    if (newImages && newImages.length > 0) {
-      // Assuming newImages are URLs or identifiers for new images
-      updates.images = [...product.images, ...newImages];
+  
+      // If colornames provided, find matching colors
+      if (colornames && colornames.length > 0) {
+        const colorsData = await Color.find({ colorname: { $in: colornames } });
+        if (colorsData.length !== colornames.length) {
+          return res.status(400).json({ error: 'One or more colors are invalid' });
+        }
+  
+        updates.colors = colorsData.map(color => ({
+          colorname: color.colorname,
+          colorcode: color.colorcode,
+        }));
+      }
+  
+      // Recalculate discounted price if price or discount changes
+      if (price || discount) {
+        const updatedPrice = price || product.price;
+        const updatedDiscount = discount || product.discount;
+        updates.discountedPrice = updatedPrice - (updatedPrice * updatedDiscount) / 100;
+      }
+  
+      // Apply updates to the product
+      Object.assign(product, updates);
+      const updatedProduct = await product.save();
+  
+      return res.status(200).json(updatedProduct);
+    } catch (error) {
+      return res.status(500).json({ error: 'Error editing product', details: error.message });
     }
+  };
+  
 
-    if (price || discount) {
-      const updatedPrice = price || product.price;
-      const updatedDiscount = discount || product.discount;
-      updates.discountedPrice = updatedPrice - (updatedPrice * updatedDiscount) / 100;
-    }
-
-    // Apply updates to the product
-    Object.assign(product, updates);
-    const updatedProduct = await product.save();
-
-    return res.status(200).json(updatedProduct);
-  } catch (error) {
-    return res.status(500).json({ error: 'Error editing product', details: error.message });
-  }
-};
 
 
 export const editCategory = async (req, res) => {
@@ -373,58 +395,114 @@ export const fetchProducts = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-export const filters = async (req, res) => {
-  try {
-    const {
-      search,
-      minPrice,
-      maxPrice,
-      category,
-      sortBy,
-      order
-    } = req.query;
-    console.log(req.query);
-    let filter = {};
-    if (minPrice) filter.price = { ...filter.price, $gte: Number(minPrice) };
-    if (maxPrice) filter.price = { ...filter.price, $lte: Number(maxPrice) };
-    // if (rating) filter.rating = { $gte: Number(rating) };
-    // if (brand) filter.brandname = brand;
-    if (category) filter.category = category;
-    // if (subcategory) filter.subcategories = { $in: subcategory.split(',') }; 
-    if (minDiscount) filter.discount = { ...filter.discount, $gte: Number(minDiscount) };
-    if (maxDiscount) filter.discount = { ...filter.discount, $lte: Number(maxDiscount) };
-    // if (hotDeals && hotDeals !== 'false') filter.hotDeals = true;
+// export const filters = async (req, res) => {
+//   try {
+//     const {
+//       search,
+//       minPrice,
+//       maxPrice,
+//       category,
+//       colors,
+//       sizes,
+//       sortBy,
+//       order
+//     } = req.query;
+//     console.log(req.query);
+//     const page = parseInt(req.query.page) || 1;
+//     const limit = parseInt(req.query.limit) || 6;
+//     const skip = (page - 1) * limit;
 
-    let sort = {};
+//     let filter = {};
+//     if (minPrice) filter.price = { ...filter.price, $gte: Number(minPrice) };
+//     if (maxPrice) filter.price = { ...filter.price, $lte: Number(maxPrice) };
+//     // if (rating) filter.rating = { $gte: Number(rating) };
+//     // if (brand) filter.brandname = brand;
+//     if (category) filter.category = category;
+//     if (colors) filter.subcategories = { $in: colors.split(',') }; 
+//     if (sizes) filter.sizes = {$in : sizes.split(',')}
+//     if (minDiscount) filter.discount = { ...filter.discount, $gte: Number(minDiscount) };
+//     if (maxDiscount) filter.discount = { ...filter.discount, $lte: Number(maxDiscount) };
+//     // if (hotDeals && hotDeals !== 'false') filter.hotDeals = true;
+
+//     let sort = {};
 
 
-    if (sortBy) sort[sortBy] = order === 'desc' ? -1 : 1;
-    // console.log(filter);
-    let products;
-    if(search)
-    {
-      const regex = new RegExp(search, 'i'); // 'i' makes it case-insensitive
-       products = await Product.find({
-        $or: [
-          { name: regex },
-          { category: regex },
-          { subcategories: regex },
-          { description: regex },
-          { brandname: regex }
-        ]
-      }).find(filter).sort(sort);
-    }
-    else{
-     products = await Product.find(filter).sort(sort);
-  }
+//     if (sortBy) sort[sortBy] = order === 'desc' ? -1 : 1;
+//     // console.log(filter);
+//     let products;
+//     if(search)
+//     {
+//       const regex = new RegExp(search, 'i'); // 'i' makes it case-insensitive
+//        products = await Product.find({
+//         $or: [
+//           { name: regex },
+//           { category: regex },
+//           { colors: regex },
+//           { description: regex },
+//           { sizes: regex }
+//         ]
+//       }).find(filter).sort(sort).skip(skip).limit(limit);
+//     }
+//     else{
+//      products = await Product.find(filter).sort(sort).skip(skip).limit(limit);
+//   }
   
 
-    res.json(products);
+//     res.json(products);
+//   } catch (error) {
+//     console.error('Error fetching products:', error);
+//     res.status(500).json({ error: 'Internal Server Error' });
+//   }
+// };
+
+export const filters = async (req, res) => {
+  try {
+    const { category, colornames, sizes } = req.query;
+
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 6;
+    const skip = (page - 1) * limit;
+
+    let filter = {};
+
+    // Filter by category if provided
+    if (category) {
+      filter.category = category;
+    }
+
+    // Filter by sizes if provided
+    if (sizes) {
+      filter.sizes = { $in: sizes.split(',') };
+    }
+
+    // Filter by colornames (resolve colornames to colorcode and filter by that)
+    if (colornames) {
+      const colorDocs = await Color.find({ colorname: { $in: colornames.split(',') } });
+      if (colorDocs.length > 0) {
+        const colorcodes = colorDocs.map(c => c.colorcode);
+        filter['colors.colorcode'] = { $in: colorcodes };
+      } else {
+        return res.status(400).json({ error: 'No valid colors found' });
+      }
+    }
+
+    // Fetch products based on filters (if any) or all products if no filters
+    const products = await Product.find(filter).skip(skip).limit(limit);
+    const total = await Product.countDocuments(filter);
+
+    res.status(200).json({
+      products,
+      total,
+      page,
+      limit,
+    });
+
   } catch (error) {
     console.error('Error fetching products:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
+
 
 
 const searchProducts = async (searchTerm) => {
@@ -434,9 +512,9 @@ const searchProducts = async (searchTerm) => {
       $or: [
         { name: regex },
         { category: regex },
-        { subcategories: regex },
+        { sizes: regex },
+        {colors:regex},
         { description: regex },
-        { brandname: regex }
       ]
     });
     return results;
@@ -457,5 +535,101 @@ export const search =  async (req, res) => {
     res.status(200).json(products);
   } catch (error) {
     res.status(500).json({ error: 'An error occurred while searching for products' });
+  }
+};
+
+// Create Color
+export const createColor = async (req, res) => {
+  const { colorcode, colorname } = req.body;
+  try {
+    const color = new Color({ colorcode, colorname });
+    await color.save();
+    res.status(201).json({ message: 'Color created successfully', color });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+// Delete Color
+export const deleteColor = async (req, res) => {
+  const { id } = req.body;
+
+  try {
+    // Find and delete the color
+    const color = await Color.findByIdAndDelete(id);
+    if (!color) return res.status(404).json({ message: 'Color not found' });
+
+    // Remove the color from all products that reference it
+    await Product.updateMany(
+      { 'colors.colorname': color.colorname, 'colors.colorcode': color.colorcode }, // Find products with the deleted color
+      { $pull: { colors: { colorname: color.colorname, colorcode: color.colorcode } } } // Remove the matching color object
+    );
+
+    res.status(200).json({ message: 'Color deleted successfully and removed from products' });
+  } catch (error) {
+    console.error('Error deleting color:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
+
+// Get All Colors
+export const getAllColors = async (req, res) => {
+  try {
+    const colors = await Color.find();
+    res.status(200).json(colors);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Get Color By ID
+export const getColorById = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const color = await Color.findById(id);
+    if (!color) return res.status(404).json({ message: 'Color not found' });
+    
+    res.status(200).json(color);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Edit Color
+export const editColor = async (req, res) => {
+  const { id, colorcode, colorname } = req.body;
+
+  try {
+    // Find the color to update
+    const color = await Color.findById(id);
+    if (!color) return res.status(404).json({ message: 'Color not found' });
+
+    // Store the old colorname and colorcode for matching in products
+    const oldColorName = color.colorname;
+    const oldColorCode = color.colorcode;
+
+    // Update the color document itself
+    color.colorcode = colorcode || color.colorcode;
+    color.colorname = colorname || color.colorname;
+    await color.save();
+
+    // Update the color references in products
+    await Product.updateMany(
+      { 'colors.colorname': oldColorName, 'colors.colorcode': oldColorCode }, // Match old colorname and colorcode
+      { 
+        $set: {
+          'colors.$[element].colorname': colorname, // Update new colorname
+          'colors.$[element].colorcode': colorcode  // Update new colorcode
+        }
+      },
+      { arrayFilters: [{ 'element.colorname': oldColorName, 'element.colorcode': oldColorCode }] } // Use array filter to match the correct color object
+    );
+
+    res.status(200).json({ message: 'Color updated successfully', color });
+  } catch (error) {
+    console.error('Error updating color in products:', error);
+    res.status(500).json({ message: error.message });
   }
 };
