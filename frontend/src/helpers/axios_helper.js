@@ -1,9 +1,10 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
-const globalurl = 'http://localhost:541';
+// const globalurl = 'http://localhost:541';
 
-// const globalurl = 'https://coffee-iota-lake.vercel.app'
+
+const globalurl = 'https://emerge-backend-two.vercel.app'
 
 
 axios.defaults.baseURL = globalurl;
