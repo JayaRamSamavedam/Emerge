@@ -49,7 +49,7 @@ app.use(limiter);
 
 // CORS configuration
 const corsOptions = {
-    origin:"http://localhost:3000",
+    origin:"https://emerge-delta.vercel.app",
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
 };
