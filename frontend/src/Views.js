@@ -18,8 +18,20 @@ import AdminProducts from "./AdminComponents/AdminProducts";
 import AdminCategory from "./AdminComponents/AdminCategory";
 import ColorManagement from "./AdminComponents/AdminColors";
 import AdminPanel from "./AdminComponents/AdminUsers";
-
+import Products from "./Components/products";
+import ProductInfo from "./Components/ProductInfo";
+import Cart from "./Components/Cart";
+import AllOrdersPage from "./Components/Orders";
+import OrderDetailsPage from "./Components/OrderDetailsPage";
+import UserProfile from "./Components/Profile";
+import Favourites from "./Components/Favourites";
+import OrderConfirmation from "./Components/OrderConfirmation";
+import Checkout from "./Components/Checkout";
+import { Elements } from '@stripe/react-stripe-js';
+import { loadStripe } from '@stripe/stripe-js';
 function Views() {
+  const stripePromise = loadStripe("pk_test_51N4hU4SFkOxgvYC9PVnsAUrfAt1DrBgl6z5CWVVfBvFhgVM4Mi7EGquPBv4wDW1yxBh3wuHoozETR5CbfSsO1c5u00HediLTnN");
+
   const location = useLocation(); // Get the current route location
 
   // Define the routes where the navbar and footer should be hidden
@@ -40,7 +52,27 @@ function Views() {
         <Route path="/cancel" element={<Cancel />} />
         <Route path="/donate" element={<Donate />} />
         <Route path="/aboutUs" element={<AboutUs />} />
+        <Route path="products" element={<Products/>}/>
+        <Route path="/productInfo/:id" element={<ProductInfo/>}/>
         {/* Protected routes for admin */}
+        <Route element={<ProtectedRoutes />}>
+               <Route element={<Cart/>} path='/cart'/>
+               <Route element={<AllOrdersPage/>} path='/orders'/>
+               <Route element={<OrderDetailsPage/>} path='/order/:orderId'/>
+               <Route element={<UserProfile/>} path="/profile"/>
+               <Route element={<Favourites/>} path="/wish-list"/>
+               
+               <Route
+          path="/checkout"
+          element={
+            <Elements stripe={stripePromise}>
+              <Checkout />
+            </Elements>
+          }
+        />
+          <Route path='/order-confirmation' element={  <Elements stripe={stripePromise}> <OrderConfirmation/></Elements>}/>
+
+          </Route>
         <Route element={<ProtectedRoutes />}>
           <Route path="/AdminDashboard" element={<AdminDashBoard />} >
           <Route path="products" element={<AdminProducts />} />

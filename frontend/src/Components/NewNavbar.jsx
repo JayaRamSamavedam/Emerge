@@ -73,7 +73,7 @@ const NewNavbar = () => {
           } else if (redirectPath) {
             navigate(redirectPath, { replace: true });
           } else {
-            navigate('/filters', { replace: true });
+            navigate('/Shop', { replace: true });
           }          
         } else {
           message.error(res.data.error);
@@ -117,7 +117,7 @@ const NewNavbar = () => {
   const handleSearch = () => {
     if (searchTerm.trim()) {
       setIsSearchVisible(false)
-      navigate(`/filters?search=${encodeURIComponent(searchTerm)}`);
+      navigate(`/products?search=${encodeURIComponent(searchTerm)}`);
       setSearchTerm('')
     }
   };

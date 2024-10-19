@@ -10,7 +10,7 @@ const logSchema = new mongoose.Schema({
   meta:{ 
     type:mongoose.Schema.Types.Mixed
   }
-});
+},{timestamps:true});
 
 const Log = mongoose.model('Log', logSchema);
 

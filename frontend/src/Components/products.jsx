@@ -1,13 +1,16 @@
-import React,{useState,useEffect} from "react";
+import React,{useState,useEffect, useRef} from "react";
 import { motion ,AnimatePresence } from "framer-motion";
+
 import SearchModal from "./ui/searchnew";
 import { Pagination } from 'antd'; 
-import { Link } from "react-router-dom";
+import queryString from 'query-string';
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { RequestParams,Request } from "../helpers/axios_helper";
 import Search from "antd/es/transfer/search";
-import { useNavigate } from "react-router-dom";
-export default function Shop() {
-  const navigate = useNavigate("");
+import { faL } from "@fortawesome/free-solid-svg-icons";
+export default function Products() {
+    const navigate = useNavigate(); // Use useNavigate for navigation
+    const location = useLocation(); // Get current location
     const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
      const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
      const [categories, setCategories] = useState([]);
@@ -18,7 +21,55 @@ export default function Shop() {
      const [pageSize] = useState(6);
      const [colors,setColors] = useState([]);
      const [sizes,setSizes] = useState(['S','M','L','XL','XXL']);
+     const [searchTerm, setSearchTerm] = useState('');
+     const [filters, setFilters] = useState({
+        category: [],
+        colors: [],
+        sizes: [],
+        sortBy: '',
+        order: 'asc',
+      });
+    
+    //  const [search,setsearchterm] = useState('');
+   
 
+    useEffect(() => {
+        const parsedQuery = queryString.parse(location.search);
+        applyQueryParamsToFilters(parsedQuery);
+    }, [location.search]);
+    
+    const applyQueryParamsToFilters = (params) => {
+        const updatedFilters = { ...filters };
+    
+        if (params.search && params.search.trim()) {
+            console.log(searchTerm);  // Before setting
+            console.log(params.search.trim());  // Parsed search term
+    
+            setSearchTerm(params.search.trim());  // Set searchTerm separately
+        }
+        
+        if (params.category && params.category.trim()) {
+            updatedFilters.category = [params.category.trim()];
+        }
+    
+        setFilters(updatedFilters);
+    };
+    const firstRenderRef = useRef(true);
+
+    useEffect(() => {
+        // This effect runs after searchTerm or filters are updated
+         if (firstRenderRef.current) {
+        firstRenderRef.current = false;
+        return;
+    }
+
+    // This effect runs after searchTerm or filters are updated
+    if (searchTerm || filters.category.length) {
+        fetchProducts(1, filters);
+    }
+    }, [searchTerm,filters]);
+    
+    
  const fetchCategories = async () => {
     try {
       const response = await Request("GET", "/prod/getAllCategories");
@@ -27,14 +78,7 @@ export default function Shop() {
       console.error('Error fetching categories:', error);
     }
   };
-  const [filters, setFilters] = useState({
-    search:"",
-    category: '',
-    colors: [],
-    sizes: [],
-    sortBy: '',
-    order: 'asc',
-  });
+
   const fetchColors = async () => {
     try {
       const response = await Request("GET", "/colors");
@@ -46,17 +90,16 @@ export default function Shop() {
 
 
   const fetchProducts = async (page = 1, customFilters = filters) => {
-    setLoading(true);
     const response = await RequestParams("GET", "/prod/filter", {
-      ...customFilters,
-      page,
-      limit: pageSize,
+        ...customFilters,
+        search: searchTerm,
+        page,
+        limit: pageSize,
     });
     setProducts(response.data.products || []);
     setTotalProducts(response.data.total);
-    setLoading(false);
-  };
-  
+};
+
   useEffect(() => {
     fetchCategories();
     fetchProducts();
@@ -68,14 +111,13 @@ export default function Shop() {
     fetchProducts(page);
   };
 
-  const handleFilterChange = async(name, value) => {
+  const handleFilterChange = (name, value) => {
+    
     setFilters((prevFilters) => ({
       ...prevFilters,
       [name]: value,
     }));
-    await fetchProducts(1);
-     // Reset to first page when filters change
-   
+    fetchProducts(1);
   };
 
   const resetFilters = () => {
@@ -86,7 +128,7 @@ export default function Shop() {
       sortBy: '',
       order: 'asc',
     });
-    setCurrentPage(1);
+    // setCurrentPage(1);
     fetchProducts(1);
   };
 
@@ -94,18 +136,6 @@ export default function Shop() {
     setIsFilterModalOpen((prev) => !prev);
   };
 
-  const handleSortChange = (sortOption) => {
-    setFilters((prevFilters) => ({
-      ...prevFilters,
-      sortBy: sortOption,
-    }));
-  
-    // After setting the sort option, fetch products with the updated filters
-    fetchProducts(1, pageSize, { ...filters, sortBy: sortOption });
-  
-    // Close the sort dropdown after selecting an option
-    setIsSortDropdownOpen(false);
-  };
   
   // Toggle sort dropdown
   const toggleSortDropdown = () => {
@@ -128,98 +158,6 @@ export default function Shop() {
 
   return (
     <div className="pt-14 sm:pt-16 md:pt-20 lg:pt-24 bg-[#F2EFE4]">
-        <section>
-    
-        <section className="relative w-full aspect-w-16 aspect-h-9 md:aspect-w-16 md:aspect-h-8 lg:aspect-w-16 lg:aspect-h-6 overflow-hidden">
-  {/* Background Image */}
-  <motion.img
-    src="/assets/Banners/banner2.png" // Replace with the correct path to your image
-    alt="Cosmic  Collection"
-    className="absolute inset-0 w-full h-full object-cover"
-    initial={{ opacity: 0, scale: 1.1 }} // Start slightly zoomed-in and transparent
-    animate={{ opacity: 1, scale: 1 }}   // Animate to full visibility and normal scale
-    transition={{ duration: 1 }}         // Smooth one-second transition
-  />
-
-  {/* Text and CTA */}
-  <div className="absolute inset-0 flex flex-col justify-center px-6 md:px-10 lg:px-20 text-right">
-    <motion.div
-      className="max-w-lg ml-auto" // Align text to the right
-      initial={{ opacity: 0, x: 50 }}  // Slide from right with opacity
-      animate={{ opacity: 1, x: 0 }}   // Animate to full visibility and position
-      transition={{ duration: 0.8, delay: 0.3 }} // Slight delay for smooth transition
-    >
-      {/* Best Seller */}
-      <motion.h3
-        className="uppercase text-sm lg:text-base tracking-widest text-[#c08484] mb-2 dark:text-[#fca5a5]"
-        initial={{ opacity: 0, y: -20 }} // Slide up effect for subheading
-        animate={{ opacity: 1, y: 0 }}  // Animate to position
-        transition={{ duration: 0.6, delay: 0.6 }}
-      >
-        Best Seller
-      </motion.h3>
-
-      {/* Main Heading */}
-      <motion.h1
-        className="text-3xl sm:text-4xl lg:text-5xl font-extrabold mb-4  text-gray-900 dark:text-white"
-        initial={{ opacity: 0, y: 20 }}  // Slide up for the main heading
-        animate={{ opacity: 1, y: 0 }}   // Animate to position
-        transition={{ duration: 0.6, delay: 0.8 }} // Delay for staggered effect
-      >
-        Cosmic  Collection
-      </motion.h1>
-
-      {/* Subheading */}
-      <motion.p
-        className="text-base lg:text-lg mb-6 text-gray-700 dark:text-gray-300"
-        initial={{ opacity: 0, y: 20 }}  // Slide up for the description
-        animate={{ opacity: 1, y: 0 }}   // Animate to position
-        transition={{ duration: 0.6, delay: 1 }}
-      >
-        Explore the full collection including new limited edition gift-sets, body lotions, & more.
-      </motion.p>
-
-      {/* CTA Button */}
-      <motion.a
-        href="/shop"
-        className="inline-block bg-[#F2EFE4] text-black py-3 px-6 rounded-lg font-medium hover:bg-gray-200 transition dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700"
-        initial={{ opacity: 0, scale: 0.8 }}  // Starts scaled down
-        animate={{ opacity: 1, scale: 1 }}    // Grows to normal size
-        transition={{ duration: 0.6, delay: 1.2 }} // Delay for smooth entrance
-        whileHover={{ scale: 1.05 }} // Slight scale-up on hover
-      >
-        Shop Now
-      </motion.a>
-    </motion.div>
-  </div>
-</section>
-     </section>
-
-     <section className="p-6 bg-[#F2EFE4] justify-center">
-  {/* Heading */}
-  <h2 className=" text-2xl font-bold mb-6 text-center text-black">Categories</h2>
-
-  {/* Grid Layout */}
-  <div className="justify-center grid grid-cols-2 gap-1 sm:grid-cols-3 lg:grid-cols-4">
-  {/* Men Category */}
-
-  {categories.map((cat) => (
-  <a onClick={()=>{
-    
-      navigate(`/products?category=${encodeURIComponent(cat.name)}`);
-   
-  }} className="block transform hover:scale-105 transition-transform duration-300">
-    <img className="rounded-full w-32 h-auto max-w-full sm:w-28 lg:w-32 mx-auto text-white" src={cat.proImage} alt={cat.name}/>
-    <p className="text-center mt-2 text-lg font-semibold text-black ">{cat.name}</p>
-  </a>
-  ))}
-
-  {/* View All */}
-
-</div>
-
-
-</section>
 
     <section class=" bg-[#F2EFE4] antialiased dark:bg-black md:py-12">
   <div class="mx-auto max-w-screen-xl px-2 2xl:px-0">
@@ -306,58 +244,59 @@ export default function Shop() {
   >
     <ul className="p-2 text-left text-sm font-medium text-gray-500 dark:text-gray-400">
       <li>
-        <button
-          onClick={async() =>await handleFilterChange('sortBy', 'popularity')}
+        <a
+          href="#"
+          onClick={() => handleFilterChange('sortBy', 'popularity')}
           className={`group inline-flex w-full items-center rounded-md px-3 py-2 text-sm hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-600 dark:hover:text-white ${
             filters.sortBy === 'popularity' ? 'font-bold text-gray-900 dark:text-white' : ''
           }`}
         >
           The most popular
-        </button>
+        </a>
       </li>
       <li>
-        <button
-  
-          onClick={async() => await handleFilterChange('sortBy', 'newest')}
+        <a
+          href="#"
+          onClick={() => handleFilterChange('sortBy', 'newest')}
           className={`group inline-flex w-full items-center rounded-md px-3 py-2 text-sm hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-600 dark:hover:text-white ${
             filters.sortBy === 'newest' ? 'font-bold text-gray-900 dark:text-white' : ''
           }`}
         >
           Newest
-        </button>
+        </a>
       </li>
       <li>
-        <button
-        
-          onClick={async() =>await handleFilterChange('sortBy', 'priceAsc')}
+        <a
+          href="#"
+          onClick={() => handleFilterChange('sortBy', 'priceAsc')}
           className={`group inline-flex w-full items-center rounded-md px-3 py-2 text-sm hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-600 dark:hover:text-white ${
             filters.sortBy === 'priceAsc' ? 'font-bold text-gray-900 dark:text-white' : ''
           }`}
         >
           Increasing price
-        </button>
+        </a>
       </li>
       <li>
-        <button
-
-          onClick={async() =>await handleFilterChange('sortBy', 'priceDesc')}
+        <a
+          href="#"
+          onClick={() => handleFilterChange('sortBy', 'priceDesc')}
           className={`group inline-flex w-full items-center rounded-md px-3 py-2 text-sm hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-600 dark:hover:text-white ${
             filters.sortBy === 'priceDesc' ? 'font-bold text-gray-900 dark:text-white' : ''
           }`}
         >
           Decreasing price
-        </button>
+        </a>
       </li>
       <li>
-        <button
-        
-          onClick={async() => await handleFilterChange('sortBy', 'discount')}
+        <a
+          href="#"
+          onClick={() => handleFilterChange('sortBy', 'discount')}
           className={`group inline-flex w-full items-center rounded-md px-3 py-2 text-sm hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-600 dark:hover:text-white ${
             filters.sortBy === 'discount' ? 'font-bold text-gray-900 dark:text-white' : ''
           }`}
         >
           Discount %
-        </button>
+        </a>
       </li>
     </ul>
   </div>

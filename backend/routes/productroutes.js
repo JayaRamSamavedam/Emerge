@@ -11,7 +11,8 @@ const router = express.Router();
 
 router.post('/colors', controller.createColor);           // Create Color
 router.delete('/colors', controller.deleteColor);         // Delete Color
-router.get('/colors', controller.getAllColors);           // Get all colors
+router.get('/colors', controller.getAllColors);         
+router.get('/prod/colors', controller.getAllColors);      // Get all colors
 router.get('/colors/:id', controller.getColorById);       // Get color by ID
 router.put('/colors', controller.editColor); 
 router.put("/admin/prod/edit/:id",verifyAuthToken,requestLogger,checkRoleAccess,controller.editProduct);
@@ -82,4 +83,8 @@ router.get("/prod/getProductsByCategory/:cate",controller.getProductsByCategory)
 router.get("/prod/search",controller.search);
 // router.get("/admin/getsubcat/:name",controller.getSubCategory);
 router.get("/prod/filter",controller.filters);
+router.post("/prod/addAndRemoveFav/:productId",verifyAuthToken,requestLogger,checkRoleAccess,controller.AddAndRemoveFavourites);
+router.get("/prod/getFavourites",verifyAuthToken,requestLogger,checkRoleAccess,controller.FavouriteProducts);
+router.post("/prod/addfav",verifyAuthToken,requestLogger,controller.addToFav);
+router.post("/prod/remfav",verifyAuthToken,requestLogger,controller.remToFav);
 export default router;

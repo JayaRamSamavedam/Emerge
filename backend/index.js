@@ -61,11 +61,17 @@ app.use(cookieParser());
 import "./db/connection.js"
 import userrouter from './routes/userroutes.js';
 // import productrouter from './routes/productroutes.js';
-import adminrouter from  "./routes/adminroutes.js";
+
 import productrouter from "./routes/productroutes.js";
+import cartrouter from "./routes/cartroutes.js";
+app.use(cartrouter);
+import adminrouter from "./routes/adminroutes.js";
+app.use(adminrouter);
+import orderRouter from "./routes/orderroutes.js";
+app.use(orderRouter);
 app.use(productrouter)
 app.use(userrouter);
-app.use(adminrouter);
+
 
 const PORT = process.env.PORT ;
 

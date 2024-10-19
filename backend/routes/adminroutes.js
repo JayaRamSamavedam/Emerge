@@ -9,6 +9,8 @@ import verifyAuthToken from '../middlewares/verifyAuthToken.js';
 
 const router = express.Router();
 
+router.get('/admin/logs',verifyAuthToken,checkRoleAccess, admin.getAllLogs);
+
 // admin create custome user
 router.post("/admin/user/create",admin.createCustomUser);
 

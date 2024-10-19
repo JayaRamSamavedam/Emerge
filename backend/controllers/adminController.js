@@ -5,9 +5,35 @@ import UserGroup from "../schema/usergroupsSchema.js";
 import Role from "../schema/roleSchema.js";
 // const Role = require("../schema/roleSchema.js")
 
+import Log from '../schema/logSchema.js';
 
 
 //create admin user
+export const getAllLogs = async (req, res) => {
+  try {
+    // Get the page and limit from query parameters
+    const page = parseInt(req.query.page) || 1; // Default to page 1
+    const limit = parseInt(req.query.limit) || 10; // Default to 10 items per page
+
+    // Calculate total number of logs
+    const totalLogs = await Log.countDocuments();
+
+    // Fetch logs with pagination and sort them by the most recent
+    const logs = await Log.find()
+    .sort({ createdAt: -1 }) 
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    res.status(200).json({
+      logs,
+      totalLogs,
+      page,
+      totalPages: Math.ceil(totalLogs / limit),
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch logs' });
+  }
+};
 
 export const createCustomUser = async (req, res) => {
   const { fullName, email, phonenumber, password,userGroup } = req.body;

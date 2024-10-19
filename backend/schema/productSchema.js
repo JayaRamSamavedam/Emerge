@@ -72,13 +72,16 @@ const productSchema = new mongoose.Schema({
   }
 },{timestamps:true});
 
+// Text index for name, category, and description (suitable for full-text search)
 productSchema.index({ 
   name: 'text', 
   category: 'text', 
-  sizes: 'text', 
-  description: 'text', 
-  colors:'text',
+  description: 'text'
 });
+
+// Compound index for `colors.colorname` and `sizes` (for targeted search)
+productSchema.index({ 'colors.colorname': 1 });
+productSchema.index({ sizes: 1 });
 
 productSchema.pre('save', async function (next) {
   const product = this;
