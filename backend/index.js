@@ -11,7 +11,7 @@ dotenv.config();
 
 const stripe = new Stripe(process.env.stripe_key);
 const app = express();
-
+const frontendURL =process.env.CLIENT;
 app.use(express.urlencoded({ extended: false }))
 
 // Configure Helmet for strong security
@@ -49,7 +49,7 @@ app.use(limiter);
 
 // CORS configuration
 const corsOptions = {
-    origin:"https://emerge-delta.vercel.app",
+    origin:`${frontendURL}`,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
 };

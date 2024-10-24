@@ -88,7 +88,7 @@ userSchema.methods.generateAuthToken = async function() {
 
 
 userSchema.methods.editUserDetails = async function(updates) {
-  const allowedUpdates = ["fullName", "phonenumber", "birthday", "region", "gender"];
+  const allowedUpdates = ["fullName", "phonenumber"];
   const keys = Object.keys(updates);
   const isValidOperation = keys.every((key) => allowedUpdates.includes(key));
 

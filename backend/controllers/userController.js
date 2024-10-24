@@ -256,34 +256,30 @@ res.status(200).json({ message: "User login successfully done", accessToken:acce
 
   export const changePassword = async (req, res) => {
     const { email, oldPassword, newPassword } = req.body;
-  
+    console.log(email,req.user.email)
+    if(email!==req.user.email){
+      return res.status(400).json({error:"forbidden access"});
+    }
     if (!email || !oldPassword || !newPassword) {
       return res.status(400).json({ error: "Please provide email, old password, and new password" });
     }
-  
     try {
       const user = await users.findOne({ email });
-  
       if (!user) {
         return res.status(400).json({ error: "User not found" });
       }
-  
       const isMatch = await bcrypt.compare(oldPassword, user.password);
-  
       if (!isMatch) {
         return res.status(400).json({ error: "Old password is incorrect" });
       }
-  
+
       // console.log("Matching old password");
   
-      const hashedNewPassword = await bcrypt.hash(newPassword, 12);
+      // const hashedNewPassword = await bcrypt.hash(newPassword, 12);
       // console.log("New password hashed:", hashedNewPassword);
-  
       user.password = newPassword;
       user.tokens = []; // Invalidate all existing tokens
-  
       await user.save();
-  
       res.status(200).json({ message: "Password changed successfully" });
     } catch (error) {
       console.error("Error changing password:", error);
@@ -514,10 +510,8 @@ res.status(200).json({ message: "User login successfully done", accessToken:acce
     try
    { 
     const {fullName,phonenumber} = req.body;
-   
     const u = await users.findOne({email:req.user.email})
     const saveduser = await u.editUserDetails({fullName,phonenumber});
-    console.log("dj")
     return res.status(200).json({message:"user details updated successfully"});
   }
   catch(error){

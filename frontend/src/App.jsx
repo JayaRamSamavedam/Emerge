@@ -6,7 +6,9 @@ import { useNavigate } from "react-router-dom";
 import { isAuthTokenPresent ,getUserDetails} from "./helpers/axios_helper";
 import Views from "./Views";
 export const UserContext = createContext();
+
 function App() {
+  
   const navigate = useNavigate();
   const [user, setUser] = useState({ loggedIn: isAuthTokenPresent(), details: getUserDetails()});
   const [visible,setvisible] = useState(false);

@@ -4,7 +4,7 @@ import Cookies from 'js-cookie';
 // const globalurl = 'http://localhost:541';
 
 
-const globalurl = 'https://emerge-backend-two.vercel.app'
+const globalurl = process.env.REACT_APP_BACKEND;
 
 
 axios.defaults.baseURL = globalurl;
