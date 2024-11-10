@@ -1,4 +1,3 @@
-// bhavishya teki akkalu
 
 import dotenv from 'dotenv';
 import express from 'express';
