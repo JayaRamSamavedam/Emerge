@@ -1,0 +1,30 @@
+steps:
+  # Install dependencies and build the frontend app
+  - name: 'node'
+    entrypoint: 'npm'
+    args: ['install']
+    dir: 'frontend'
+
+  - name: 'node'
+    entrypoint: 'npm'
+    args: ['run', 'build']
+    dir: 'frontend'
+
+  # Use Google Cloud Buildpacks to package the built app for deployment
+  - name: 'gcr.io/cloud-builders/pack'
+    args: ['build', 'gcr.io/$PROJECT_ID/frontend', '--builder', 'gcr.io/buildpacks/builder']
+    dir: 'frontend/build'
+
+  # Deploy the frontend image to Cloud Run
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      [
+        'run', 'deploy', 'mern-frontend',  # Replace with the name of your frontend service
+        '--image', 'gcr.io/$PROJECT_ID/frontend',
+        '--platform', 'managed',
+        '--region', 'us-central1',
+        '--allow-unauthenticated'
+      ]
+
+images:
+  - 'gcr.io/$PROJECT_ID/frontend'

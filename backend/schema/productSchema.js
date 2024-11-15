@@ -3,6 +3,10 @@ import Counter from './productCounterSchema.js';
 import Category from './categorySchema.js';
 import Color from './colorSchema.js';
 const productSchema = new mongoose.Schema({
+  printfulProductId: {
+    type: String, // Printful's unique product identifier
+    unique: true,
+  },
   priority:{
     type:Number,
     default:0,
