@@ -10,10 +10,10 @@ steps:
     args: ['run', 'build']
     dir: 'frontend'
 
-  # Use Google Cloud Buildpacks to package the built app for deployment
+  # Use Google Cloud Buildpacks to package the entire frontend directory for deployment
   - name: 'gcr.io/cloud-builders/pack'
     args: ['build', 'gcr.io/$PROJECT_ID/frontend', '--builder', 'gcr.io/buildpacks/builder']
-    dir: 'frontend/build'
+    dir: 'frontend'  # Changed from 'frontend/build' to 'frontend'
 
   # Deploy the frontend image to Cloud Run
   - name: 'gcr.io/cloud-builders/gcloud'
