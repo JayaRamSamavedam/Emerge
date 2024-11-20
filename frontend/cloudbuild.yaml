@@ -2,8 +2,8 @@ steps:
   # Install dependencies and build the frontend app
   - name: 'node'
     entrypoint: 'npm'
-    args: ['install']
-    dir: 'frontend'
+    args: ['install','--include=dev'],
+     dir: 'frontend'
 
   - name: 'node'
     entrypoint: 'npm'
