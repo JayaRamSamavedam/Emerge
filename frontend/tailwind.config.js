@@ -65,9 +65,7 @@ module.exports = {
     },
   },
   plugins: [
-    require('daisyui'),
     addVariablesForColors,
-    
     require('@tailwindcss/aspect-ratio'),
   ],
 }
