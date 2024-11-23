@@ -9,6 +9,7 @@ const userGroupSchema = new mongoose.Schema({
     unique: true,
   },
   roles: [{
+    
     type: Number,
   }],
   description: {
