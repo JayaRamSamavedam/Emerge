@@ -3,9 +3,9 @@ import mongoose from "mongoose";
 // Define a sub-schema for products
 const productSchema = new mongoose.Schema({
     productId: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: Number,
         required: true,
-        ref: 'Product' // Assuming you have a Product model
+         // Assuming you have a Product model
     },
     viewedAt: {
         type: Date,

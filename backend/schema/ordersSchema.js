@@ -9,22 +9,14 @@ const orderItemSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  variantId:{
+    type:Number,
+    required:true,
+  },
   quantity: {
     type: Number,
     required: true,
     min: 1,
-  },
-  color:{
-    type:String,
-    requred:true,
-  },
-  size:{
-    type:String,
-    requred:true,
-  },
-  price: {
-    type: Number,
-    required: true,
   },
 });
 
@@ -72,6 +64,10 @@ const orderSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  externalorderId:{
+    type:String,
+    
+  },
   items: [orderItemSchema],
   totalAmount: {
     type: Number,
@@ -99,24 +95,7 @@ const orderSchema = new mongoose.Schema({
   },
 },{timestamps:true});
 
-orderSchema.pre('save', async function (next) {
-  try {
-    const order = this;
 
-    // Validate each productId in the order items
-    for (const item of order.items) {
-      const product = await Product.findOne({ productId: item.productId });
-      if (!product) {
-        throw new Error(`Product with productId ${item.productId} not found`);
-      }
-      item.price = product.discountedPrice * item.quantity;
-    }
-    order.totalAmount = order.items.reduce((total, item) => total + item.price, 0);
-    next();
-  } catch (error) {
-    next(error);
-  }
-});
 orderSchema.statics.getUniqueProductsPurchasedByUser = async function (userId) {
   try {
     const orders = await this.find({ user: userId });

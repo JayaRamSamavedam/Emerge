@@ -20,6 +20,8 @@ const Favourites = () => {
         try {
             const response = await Request('GET', '/prod/getFavourites'); // Adjust the endpoint if necessary
             if (response && response.data) {
+
+
                 setCartItems(response.data.products || []);
                 console.log(response.data) // Ensure products is an array
                 console.log(cartItems)
@@ -89,7 +91,7 @@ const Favourites = () => {
                                 <Card
                                     style={{ width: '100%', padding: '20px' }}
                                     actions={[
-                                        <button onClick={() => handleclick(item.productId)}
+                                        <button onClick={() => handleclick(item.sync_product.id)}
                                         class="flex items-center justify-center rounded-md bg-slate-900 px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-blue-300">
       <svg xmlns="http://www.w3.org/2000/svg" class="mr-2 h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
         <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -99,7 +101,7 @@ const Favourites = () => {
 
                                         <Popconfirm
                                             title="Are you sure to remove this product?"
-                                            onConfirm={() => removeItemfromCart(item.productId)}
+                                            onConfirm={() => removeItemfromCart(item.sync_product.id)}
                                             okText="Yes"
                                             cancelText="No"
                                         >
@@ -109,11 +111,11 @@ const Favourites = () => {
                                 >
                                     <Row gutter={[16, 16]} align="middle">
                                         <Col span={4} className="text-center">
-                                            <img src={item.coverImage} alt={item.name} style={{ width: '80px', objectFit: 'cover' }} />
+                                            <img src={item.sync_product.thumbnail_url} alt={item.sync_product.name} style={{ width: '80px', objectFit: 'cover' }} />
                                         </Col>
                                         <Col span={16}>
-                                            <h3 className="text-xl font-semibold">{item.name}</h3>
-                                            <p className="text-gray-600">Price: ${item.discountedPrice.toFixed(2)}</p>
+                                            <h3 className="text-xl font-semibold">{item.sync_product.name}</h3>
+                                            <p className="text-gray-600">Price: ${item.sync_variants[0].retail_price}</p>
                                             {/* <p className="text-gray-600">Total: ${(item.discountedPrice * item.quantity).toFixed(2)}</p> */}
                                         </Col>
                                     </Row>

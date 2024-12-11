@@ -4,9 +4,12 @@ import User from './userSchema.js';        // Adjust the path as necessary
 
 const cartItemSchema = new mongoose.Schema({
   productId: {
-    type: Number,
-    ref: 'Product',
+    type: String,
     required: true,
+  },
+  variantId:{
+    type:String,
+    required:true,
   },
   quantity: {
     type: Number,
@@ -14,14 +17,6 @@ const cartItemSchema = new mongoose.Schema({
     default: 1,
     min: 1,
   },
-  color:{
-    type:String,
-    required:true,
-  },
-  size:{
-    type:String,
-    required:true,
-  }
 });
 
 const cartSchema = new mongoose.Schema({
@@ -46,12 +41,7 @@ cartSchema.pre('save', async function (next) {
     if(!us){
         throw new Error("no such user exists");
     }
-    for (const item of cart.items) {
-      const product = await Product.findOne({ productId: item.productId });
-      if (!product) {
-        throw new Error(`Product with productId ${item.productId} not found`);
-      }
-    }
+   
     next();
   } catch (error) {
     next(error);

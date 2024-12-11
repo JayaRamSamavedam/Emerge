@@ -4,7 +4,7 @@ import RecentlyViewed from '../schema/recentlyViewedSchema.js';
 
 import Color from '../schema/colorSchema.js';
 import Favourites from '../schema/favouritesSchema.js';
-
+import axios from 'axios';
 export const createProduct = async (req, res) => {
   const { name, coverImage, colornames, images, category, description, price, discount, sizes } = req.body;
 
@@ -959,8 +959,12 @@ export const FavouriteProducts = async (req, res) => {
 
       // Fetch the product details for each product ID in the favourites
       const products = await Promise.all(fav.products.map(async (productId) => {
-          const product = await Product.findOne({productId:productId});
-          return product;
+          const product = await axios.get(`https://api.printful.com/store/products/${productId}`, {
+            headers: {
+                Authorization: `Bearer ${process.env.printful_token}`,
+            },
+        });
+          return product.data.result;
       }));
 
       res.status(200).json({products });

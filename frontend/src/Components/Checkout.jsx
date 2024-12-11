@@ -9,8 +9,16 @@ const Checkout = () => {
   const elements = useElements();
   const navigate = useNavigate();
   const location = useLocation();
-  const { fromCart, productId, quantity } = location.state || {};
-
+  const { fromCart, productId, quantity,variantId } = location.state || {};
+  const US_CITIES = {
+    CA: ['Los Angeles', 'San Francisco', 'San Diego', 'Sacramento'],
+    NY: ['New York City', 'Buffalo', 'Rochester', 'Albany'],
+    TX: ['Houston', 'Austin', 'Dallas', 'San Antonio'],
+    FL: ['Miami', 'Orlando', 'Tampa', 'Jacksonville'],
+    IL: ['Chicago', 'Springfield', 'Naperville', 'Peoria'],
+    // Add other states and their cities here as needed
+  };
+  
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     shipmentAddress: {
@@ -30,7 +38,17 @@ const Checkout = () => {
       shipmentAddress: { ...formData.shipmentAddress, [name]: value },
     });
   };
-
+  const handleStateChange = (e) => {
+    const state = e.target.value;
+    setFormData({
+      ...formData,
+      shipmentAddress: {
+        ...formData.shipmentAddress,
+        state,
+        city: '', // Reset city when state changes
+      },
+    });
+  };
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!stripe || !elements) {
@@ -88,7 +106,7 @@ const Checkout = () => {
       const apiUrl = fromCart ? '/orders/cart-buy-now' : '/orders/buy-now';
       const orderData = fromCart
         ? { ...orderPayload }
-        : { productId, quantity, ...orderPayload };
+        : { productId, quantity, ...orderPayload ,variantId};
 
       const { data } = await Request('POST', apiUrl, orderData);
 
@@ -128,23 +146,39 @@ const Checkout = () => {
               required
             />
           </Form.Item>
+          <Form.Item label="State" className="mb-4">
+            <select
+              className="w-full p-2 border rounded-lg"
+              name="state"
+              value={formData.shipmentAddress.state}
+              onChange={handleStateChange}
+              required
+            >
+              <option value="">Select State</option>
+              {Object.keys(US_CITIES).map((stateCode) => (
+                <option key={stateCode} value={stateCode}>
+                  {stateCode}
+                </option>
+              ))}
+            </select>
+          </Form.Item>
           <Form.Item label="City" className="mb-4">
-            <input
+            <select
               className="w-full p-2 border rounded-lg"
               name="city"
               value={formData.shipmentAddress.city}
               onChange={handleInputChange}
               required
-            />
-          </Form.Item>
-          <Form.Item label="State" className="mb-4">
-            <input
-              className="w-full p-2 border rounded-lg"
-              name="state"
-              value={formData.shipmentAddress.state}
-              onChange={handleInputChange}
-              required
-            />
+              disabled={!formData.shipmentAddress.state}
+            >
+              <option value="">Select City</option>
+              {formData.shipmentAddress.state &&
+                US_CITIES[formData.shipmentAddress.state].map((city) => (
+                  <option key={city} value={city}>
+                    {city}
+                  </option>
+                ))}
+            </select>
           </Form.Item>
           <Form.Item label="Postal Code" className="mb-4">
             <input

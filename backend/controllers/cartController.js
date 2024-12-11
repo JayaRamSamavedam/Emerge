@@ -1,30 +1,24 @@
-import Cart from '../schema/cartSchema.js';
-import Color from '../schema/colorSchema.js';
-import Product from '../schema/productSchema.js';  // Adjust the path as necessary
+import Cart from '../schema/cartSchema.js'; // Adjust the path as necessary
+import axios from 'axios';
 
 export const addToCart = async (req, res) => {
   const productId = req.params.productId;
+  
   let { quantity } = req.body; // quantity can be reassigned
-  let {color,size} = req.body;
-
+ const variantId = req.body.variantId;
   if (!productId) {
     return res.status(400).json({ error: "Please provide valid ProductID" });
   }
-  if(!color){
-
-    return res.status(400).json({error:"please choose the color"});
+  if(!variantId){
+    return res.status(400).json({error:"please enter the valid variantId"});
   }
   
-  if(!size){
-    return res.status(400).json({error:"please choose the size"});
-  }
+ 
   
 
   try {
-    color = await Color.findOne({colorcode:color});
-    if(!color){
-      return res.status(400).json({error:"please choose the valid color"});
-    }
+    
+  
 
     let cart = await Cart.findOne({ user: req.user.email });
     if (!cart) {
@@ -32,21 +26,18 @@ export const addToCart = async (req, res) => {
     }
     
     // const productIndex = cart.items.findIndex(item => item.productId === productId);
-    const productIndex = cart.items.findIndex(item => item.productId.toString() === productId.toString());
+    const productIndex = cart.items.findIndex(item => item.productId.toString() === productId.toString() && item.variantId.toString()=== variantId.toString());
     console.log(productIndex)
     if (productIndex > -1) {
       // Product already in cart, update quantity
       cart.items[productIndex].quantity += quantity;
     } else {
       // Product not in cart, add new item
-      const product = await Product.findOne({ productId: productId }); // Use _id or unique identifier
+       // Use _id or unique identifier
       if (!quantity || quantity <= 0) {
         quantity = 1; // Set default quantity to 1 if not provided or invalid
       }
-      if (!product) {
-        return res.status(404).json({ error: "Product not found" });
-      }
-      cart.items.push({ productId, quantity,color,size });
+      cart.items.push({ productId, quantity,variantId });
     }
     await cart.save();
     return res.status(200).json(cart); // Send the updated cart as response
@@ -61,6 +52,7 @@ export const addToCart = async (req, res) => {
 export const increment = async (req, res) => {
   console.log(req.params)
     const  productId  = req.params.productId;
+    const variantId = req.body.variantId;
     if ( !productId) {
       return res.status(400).json({ error: "Please provide  productId to increment" });
     }
@@ -72,8 +64,8 @@ export const increment = async (req, res) => {
       }
 
       // console.log(cart.items)
-      const productIndex = cart.items.findIndex(item => item.productId.toString() === productId.toString());
-      const product = await Product.findOne({productId:productId});
+      const productIndex = cart.items.findIndex(item => item.productId.toString() === productId.toString() && item.variantId.toString()=== variantId.toString());
+      // const product = await Product.findOne({productId:productId});
       if (productIndex > -1) {
         cart.items[productIndex].quantity +=1;
         await cart.save();
@@ -90,6 +82,7 @@ export const increment = async (req, res) => {
   export const decrement = async (req, res) => {
     // console.log(req.params)
     const  productId  = req.params.productId;
+    const variantId = req.body.variantId;
     if ( !productId) {
       return res.status(400).json({ error: "Please provide  productId to increment" });
     }
@@ -100,8 +93,7 @@ export const increment = async (req, res) => {
       }
 
       // console.log(cart.items)
-      const productIndex = cart.items.findIndex(item => item.productId.toString() === productId.toString());
-      const product = await Product.findOne({productId:productId});  
+      const productIndex = cart.items.findIndex(item => item.productId.toString() === productId.toString() && item.variantId.toString()=== variantId.toString());
       if (productIndex > -1) {
         cart.items[productIndex].quantity -= 1;
         if (cart.items[productIndex].quantity <= 0) {
@@ -120,6 +112,7 @@ export const increment = async (req, res) => {
   // Remove a product from the cart
   export const removeFromCart = async (req, res) => {
     const  productId  = req.params.productId;
+    const variantId = req.body.variantId;
     if (!productId) {
       return res.status(400).json({ error: "Please provide productId to remove" });
     }
@@ -129,7 +122,7 @@ export const increment = async (req, res) => {
         return res.status(400).json({ error: "Invalid cartID" });
       }
   
-      cart.items = cart.items.filter(item => item.productId.toString() !== productId.toString());
+      cart.items = cart.items.filter(item => item.variantId.toString() !== variantId.toString());
       await cart.save();
       return res.status(200).json(cart);
     } catch (e) {
@@ -153,8 +146,7 @@ export const increment = async (req, res) => {
       return res.status(500).json({ error: e.message });
     }
   };
-
-
+  
   export const getCartDetails = async (req, res) => {
     try {
       // Find the cart for the user
@@ -168,20 +160,24 @@ export const increment = async (req, res) => {
   
       // Loop through the cart items and fetch product details manually
       for (const item of cart.items) {
-        const product = await Product.findOne({productId:item.productId});
-        if (product) {
+        const product =  await axios.get(`https://api.printful.com/store/products/${item.productId}`, {
+          headers: {
+              Authorization: `Bearer ${process.env.printful_token}`,
+          },
+      });
+      console.log(product)
+      const varproduct = product.data.result.sync_variants.filter(variant => variant.id.toString() === item.variantId.toString())[0];
+       console.log(varproduct) 
+      if (product) {
           const productDetails = {
-            productId: product.productId,
-            name: product.name,
-            coverImage: product.coverImage,
-            price: product.price,
-            rating:product.rating,
-            productQuantity:product.quantity,
-            discountedPrice: product.discountedPrice,
+            productId: product.data.result.sync_product.id,
+            variantId:item.variantId,
+            name: varproduct.name,
+            coverImage: varproduct.files[1].preview_url,
+            price: varproduct.retail_price,
+            productQuantity:item.quantity,
             quantity: item.quantity,
-            size:item.size,
-            color:item.color,
-            totalItemCost: product.discountedPrice * item.quantity,
+            totalItemCost: varproduct.retail_price * item.quantity,
           };
           totalCost += productDetails.totalItemCost;
           products.push(productDetails);

@@ -6,6 +6,7 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import cors from 'cors';
 import Stripe from 'stripe';
+import axios from 'axios';
 dotenv.config();
 
 const stripe = new Stripe(process.env.stripe_key);
@@ -164,6 +165,89 @@ app.post('/api/donate', async (req, res) => {
     res.status(200).send({ received: true });
   });
   
+
+// Your Printful API token
+const PRINTFUL_API_TOKEN = process.env.printful_token;
+
+// Fetch products from Printful
+app.get('/api/products', async (req, res) => {
+  console.log("I am invoked")
+    try {
+        const response = await axios.get('https://api.printful.com/store/products', {
+            headers: {
+                Authorization: `Bearer ${PRINTFUL_API_TOKEN}`,
+            },
+        });
+        console.log(response)
+        res.json(response.data);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to fetch products from Printful' });
+    }
+});
+app.get('/api/products/:id', async (req, res) => {
+  const productId = req.params.id;
+  try {
+      const response = await axios.get(`https://api.printful.com/store/products/${productId}`, {
+          headers: {
+              Authorization: `Bearer ${PRINTFUL_API_TOKEN}`,
+          },
+      });
+
+      // Extract the sync_variants array
+      const syncVariants = response.data.result.sync_variants;
+
+      // Objects to store the grouped data
+      const sizeToColors = {};  // For each size, list of colors
+      const colorToSizes = {};  // For each color, list of sizes
+      const colors = [];  // Array to hold unique colors
+      const sizes = [];  // Array to hold unique sizes
+
+      // Iterate over the sync_variants to group sizes and colors
+      syncVariants.forEach(variant => {
+          const size = variant.size;
+          const color = variant.color;
+
+          // Add color to size
+          if (!sizeToColors[size]) {
+              sizeToColors[size] = [];
+          }
+          if (!sizeToColors[size].includes(color)) {
+              sizeToColors[size].push(color);
+          }
+
+          // Add size to color
+          if (!colorToSizes[color]) {
+              colorToSizes[color] = [];
+          }
+          if (!colorToSizes[color].includes(size)) {
+              colorToSizes[color].push(size);
+          }
+
+          // Add unique colors and sizes to the arrays
+          if (!colors.includes(color)) {
+              colors.push(color);
+          }
+          if (!sizes.includes(size)) {
+              sizes.push(size);
+          }
+      });
+
+      // Send back the data
+      res.json({
+          productDetails: response.data.result,
+          sizeToColors: sizeToColors,
+          colorToSizes: colorToSizes,
+          colors: colors,
+          sizes: sizes,
+      });
+
+  } catch (error) {
+      console.error('Error fetching product details:', error);
+      res.status(500).json({ error: 'Failed to fetch product details' });
+  }
+});
+
 app.get("/",(req,res)=>{
     res.send(" i am alive");
 })

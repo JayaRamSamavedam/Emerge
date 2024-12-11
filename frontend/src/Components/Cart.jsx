@@ -35,9 +35,9 @@ const Cart = () => {
     };
 
     // Function to increment quantity
-    const incrementQuantity = async (productId) => {
+    const incrementQuantity = async (productId,variantId) => {
         try {
-            await Request('PUT', `/cart/increment/${productId}`);
+            await Request('PUT', `/cart/increment/${productId}`,{variantId:variantId});
             fetchCartDetails(); // Refresh the cart after updating
             message.success('Item quantity incremented');
         } catch (error) {
@@ -46,13 +46,13 @@ const Cart = () => {
     };
 
     // Function to decrement quantity
-    const decrementQuantity = async (productId, currentQuantity) => {
+    const decrementQuantity = async (productId, currentQuantity,variantId) => {
         if (currentQuantity <= 1) {
             message.warning("Can't decrement quantity below 1");
             return;
         }
         try {
-            await Request('PUT', `/cart/decrement/${productId}`);
+            await Request('PUT', `/cart/decrement/${productId}`,{variantId:variantId});
             fetchCartDetails(); // Refresh the cart after updating
             message.success('Item quantity decremented');
         } catch (error) {
@@ -61,9 +61,9 @@ const Cart = () => {
     };
 
     // Function to remove an item from the cart
-    const removeItemFromCart = async (productId) => {
+    const removeItemFromCart = async (productId,variantId) => {
         try {
-            await Request('DELETE', `/cart/remove/${productId}`);
+            await Request('DELETE', `/cart/remove/${productId}`,{variantId:variantId});
             fetchCartDetails(); // Refresh the cart after removing the item
             message.success('Item removed from cart');
         } catch (error) {
@@ -108,7 +108,7 @@ const Cart = () => {
                                     style={{ width: '100%', padding: '20px' }}
                                     actions={[
                                         <Button
-                                            onClick={() => decrementQuantity(item.productId, item.quantity)}
+                                            onClick={() => decrementQuantity(item.productId, item.quantity,item.variantId)}
                                             disabled={item.quantity <= 1}
                                         >
                                             -
@@ -118,10 +118,10 @@ const Cart = () => {
                                             value={item.quantity}
                                             readOnly
                                         />,
-                                        <Button onClick={() => incrementQuantity(item.productId)}>+</Button>,
+                                        <Button onClick={() => incrementQuantity(item.productId,item.variantId)}>+</Button>,
                                         <Popconfirm
                                             title="Are you sure to remove this product?"
-                                            onConfirm={() => removeItemFromCart(item.productId)}
+                                            onConfirm={() => removeItemFromCart(item.productId,item.variantId)}
                                             okText="Yes"
                                             cancelText="No"
                                         >
@@ -135,8 +135,8 @@ const Cart = () => {
                                         </Col>
                                         <Col span={16}>
                                             <h3 className="text-xl font-semibold">{item.name}</h3>
-                                            <p className="text-gray-600">Price: ${item.discountedPrice.toFixed(2)}</p>
-                                            <p className="text-gray-600">Total: ${(item.discountedPrice * item.quantity).toFixed(2)}</p>
+                                            <p className="text-gray-600">Price: ${item.price}</p>
+                                            <p className="text-gray-600">Total: ${(item.price * item.quantity).toFixed(2)}</p>
                                         </Col>
                                     </Row>
                                 </Card>

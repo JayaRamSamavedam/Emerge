@@ -29,6 +29,10 @@ import OrderConfirmation from "./Components/OrderConfirmation";
 import Checkout from "./Components/Checkout";
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
+import Printfull from "./Components/Printfull";
+import PrintfullDetailed from "./Components/PrintfullDetailed";
+
+import TestProductInfo from "./Components/TestProductInfo";
 function Views() {
   const stripePromise = loadStripe("pk_test_51N4hU4SFkOxgvYC9PVnsAUrfAt1DrBgl6z5CWVVfBvFhgVM4Mi7EGquPBv4wDW1yxBh3wuHoozETR5CbfSsO1c5u00HediLTnN");
 
@@ -44,6 +48,9 @@ function Views() {
       {/* Conditionally render Navbar and Footer based on route */}
       {!hideNavbarFooter && <NewNavbar />}
       <Routes>
+        <Route path="/printfull" element={<Printfull/>}></Route>
+        
+        <Route path="/printfull/:id" element={<TestProductInfo/>}></Route>
         <Route path="/" element={<NewHomePage />} />
         <Route path="/donation" element={<DonationForm />} />
         <Route path="/Shop" element={<Shop />} />
