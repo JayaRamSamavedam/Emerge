@@ -18,17 +18,21 @@ const OrderDetailsPage = () => {
       try {
         const response = await Request("GET", `/orders/${orderId}`);
         const fetchedOrder = response.data.order;
+        
         setOrder(fetchedOrder);
 
         // Fetch product details for each productId in the order
         const productIds = fetchedOrder.items.map(item => item.productId);
+        
         const productResponses = await Promise.all(
-          productIds.map(async (productId) => {
-            const response = await Request("GET", `/prod/getByID/${productId}`);
-            return response;
+          fetchedOrder.items.map(async (item) => {
+            console.log(item.productId)
+            const response = await Request("GET", `/api/products/${item.productId}`);
+            return response.data.productDetails.sync_variants.find(v => v.id.toString() === item.variantId.toString());
           })
         );
-        setProducts(productResponses.map(res => res.data));
+        setProducts(productResponses);
+        console.log(productResponses)
         setLoading(false);
       } catch (error) {
         setError('Failed to fetch order or product details.');
@@ -159,13 +163,13 @@ const OrderDetailsPage = () => {
         <h2 className="text-2xl font-semibold mb-4">Items</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {order.items.map((item, index) => {
-            const product = products.find(p => p.productId === item.productId); // Find product details by productId
+            const product = products.find(p => p.sync_product_id === item.productId); // Find product details by productId
             return (
               <div key={index} className="bg-white p-4 rounded-lg shadow-lg transform transition-transform hover:scale-105">
                 <img
-                  src={product?.coverImage}
+                  src={product?.files[1].preview_url}
                   alt={product?.name || 'Product Image'}
-                  className="w-full h-40 object-cover rounded-t-lg mb-4"
+                  className="w-40 self-center h-40 object-cover rounded-t-lg mb-4"
                 />
                 <div>
                   <h3 className="text-lg font-bold mb-2">{product ? product.name : `Product ID: ${item.productId}`}</h3>

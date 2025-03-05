@@ -57,6 +57,7 @@ const Filter = () => {
       limit: pageSize,
     });
     setProducts(response.data.products || []);
+    console.log(response.data.products)
     setTotalProducts(response.data.total);
     setLoading(false);
   };
@@ -120,8 +121,8 @@ const Filter = () => {
           <p className="mb-1"><strong>Price:</strong> ₹{currentProduct.price}</p>
           <p className="mb-1"><strong>Discounted Price:</strong> ₹{currentProduct.discountedPrice}</p>
           <p className="mb-1"><strong>Colors:</strong> {currentProduct.colors.map(c => (
-            <Tag key={c.colorcode} color={c.colorcode}>
-              {c.colorname}
+            <Tag key={c.name} color={c.name}>
+              {c.name}
             </Tag>
           ))}</p>
           <p className="mb-1"><strong>Sizes:</strong> {currentProduct.sizes.join(', ')}</p>
@@ -148,14 +149,14 @@ const Filter = () => {
     } else if (viewMode === 'edit' || viewMode === 'create') {
       return (
         <CreateOrEditProduct
-          product={currentProduct}
+          product={currentProduct} 
           onSubmit={async (productData) => {
             try {
               if (viewMode === 'create') {
                 await Request("POST", "/admin/prod/create", productData);
                 message.success('Product created successfully');
               } else if (viewMode === 'edit') {
-                await Request("PUT", `/admin/prod/edit/${currentProduct.productId}`, productData);
+                await Request("PUT", `/admin/prod/edit/${currentProduct.id}`, productData);
                 message.success('Product updated successfully');
               }
               fetchProducts(currentPage);
@@ -245,7 +246,7 @@ const Filter = () => {
           <Card
             key={product._id}
             hoverable
-            cover={<img alt={product.name} src={product.coverImage} className="h-48 w-full object-cover rounded-md" />}
+            cover={<img alt={product.name} src={product.thumbnail_url} className="h-48 w-full object-cover rounded-md" />}
             className="shadow-md rounded-md"
           >
             <Card.Meta title={product.name} description={`Price: ₹${product.price}`} />

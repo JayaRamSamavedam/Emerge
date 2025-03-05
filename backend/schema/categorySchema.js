@@ -18,6 +18,7 @@ const categorySchema = new mongoose.Schema({
   link:{
     type:String,
   },
+  products:[Number],
 });
 categorySchema.pre("save", async function (next) {
   this.link=`/${this.name}`;

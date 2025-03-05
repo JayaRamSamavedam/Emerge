@@ -1,52 +1,17 @@
 import axios from 'axios';
-import Cookies from 'js-cookie';
+import dotenv from 'dotenv';
 
+dotenv.config();
 
-const globalurl = process.env.REACT_APP_BACKEND;
+const globalurl = process.env.PAYMENT_TRANSACTIONS;
 
 
 axios.defaults.baseURL = globalurl;
 axios.defaults.headers.post['Content-Type'] = 'application/json';
 
 export const getAuthToken = () => {
-  return Cookies.get('auth_token') || null;
+  return process.env.TOKEN;
 };
-
-export const isAuthTokenPresent = () => {
-    return Cookies.get('auth_token') !== undefined;
-};
-
-// Function to store user details in cookies
-export const setUserDetails = (details) => {
-  Cookies.set('details', JSON.stringify(details), { expires: 1 / 96 }); // 15 minutes expiry
-};
-export const getUserDetails = () => {
-  const details = Cookies.get('details');
-  return details ? JSON.parse(details) : null; // Return parsed object or null if not available
-};
-
-export const setAuthHeader = (token) => {
-  Cookies.set('auth_token', token, { expires: 1 / 96 });
-};
-
-export const setRefreshToken = (token) => {
-  Cookies.set('jwt', token, {
-    expires: 1,
-    secure: true,
-    sameSite: 'Lax',
-    httpOnly: true
-  });
-};
-
-
-export const flushCookies = () => {
-  const cookies = Cookies.get();
-  for (const cookie in cookies) {
-    Cookies.remove(cookie);
-    Cookies.remove(cookie, { domain: 'localhost', path: '/' });
-  }
-};
-
 
 export const Request =  (method, url, data) => {
   let headers = {};
@@ -62,7 +27,6 @@ export const Request =  (method, url, data) => {
       headers: headers,
       data: data,
       withCredentials: true,
-     
     });
 };
 

@@ -24,7 +24,7 @@ const AllOrdersPage = () => {
     } catch (error) {
       message.error('Error fetching orders');
       setLoading(false);
-    }
+    } 
   };
 
   // Fetch orders when the component mounts or when the page changes

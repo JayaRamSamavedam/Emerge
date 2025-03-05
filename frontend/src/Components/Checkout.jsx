@@ -5,6 +5,7 @@ import { Request } from '../helpers/axios_helper';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 const Checkout = () => {
+
   const stripe = useStripe();
   const elements = useElements();
   const navigate = useNavigate();
@@ -23,6 +24,7 @@ const Checkout = () => {
   const [formData, setFormData] = useState({
     shipmentAddress: {
       name: '',
+      line1:"",
       street: '',
       city: '',
       state: '',
@@ -31,6 +33,7 @@ const Checkout = () => {
     },
   });
 
+  
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({
@@ -146,6 +149,15 @@ const Checkout = () => {
               required
             />
           </Form.Item>
+          <Form.Item label="Line1" className="mb-4">
+            <input
+              className="w-full p-2 border rounded-lg"
+              name="line1"
+              value={formData.shipmentAddress.line1}
+              onChange={handleInputChange}
+              required
+            />
+          </Form.Item>
           <Form.Item label="State" className="mb-4">
             <select
               className="w-full p-2 border rounded-lg"
@@ -206,13 +218,12 @@ const Checkout = () => {
               <option value="DE">Germany</option>
               <option value="JP">Japan</option>
               <option value="CN">China</option>
-              {/* Add other country codes as needed */}
-            </select>
+              </select>
           </Form.Item>
 
           <h3 className="text-xl font-semibold mb-4">Payment Details</h3>
           <div className="mb-6 p-4 border rounded-lg">
-            <CardElement />
+            
           </div>
 
           <Button

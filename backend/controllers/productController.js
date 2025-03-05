@@ -1,10 +1,11 @@
-import Product from '../schema/productSchema.js';
+// import Product from '../schema/productSchema.js';
 import Category from '../schema/categorySchema.js';
 import RecentlyViewed from '../schema/recentlyViewedSchema.js';
 
 import Color from '../schema/colorSchema.js';
 import Favourites from '../schema/favouritesSchema.js';
 import axios from 'axios';
+import PrintfullProduct from '../schema/printfullProductSchema.js';
 export const createProduct = async (req, res) => {
   const { name, coverImage, colornames, images, category, description, price, discount, sizes } = req.body;
 
@@ -44,294 +45,294 @@ export const createProduct = async (req, res) => {
 };
 
 export const createCategory = async (req, res) => {
-    const { name ,proImage,discount} = req.body;
-    try {
-      const precat = await Category.findOne({ name });
-      if (precat) {
-        return res.status(400).json({ error: "This category already exists in our database" });
-      }
-      const cat = new Category({ name,proImage,discount });
-      const savecat = await cat.save();
-      return res.status(201).json(savecat);
-    } catch (error) {
-      return res.status(400).json({ error: "Please provide the name", details: error.message });
+  const { name, proImage, discount } = req.body;
+  try {
+    const precat = await Category.findOne({ name });
+    if (precat) {
+      return res.status(400).json({ error: "This category already exists in our database" });
     }
-  };
-  export const getAllCategories  = async (req,res)=>{
-    try{
-      const categories = await Category.find();
-      return res.status(200).json({categories});
-    }
-    catch(error){
-      return res.json(error);
-    }
+    const cat = new Category({ name, proImage, discount });
+    const savecat = await cat.save();
+    return res.status(201).json(savecat);
+  } catch (error) {
+    return res.status(400).json({ error: "Please provide the name", details: error.message });
   }
-  export const editProduct = async (req, res) => {
-    const { id } = req.params;
-    const { name, category, images, description, price, discount, imagesToDelete, newImages, coverImage, sizes, colornames } = req.body;
-  
-    try {
-      // Find the product by ID
-      const product = await Product.findOne({ productId: Number(id) });
-      if (!product) {
-        return res.status(404).json({ error: 'Product not found' });
-      }
-  
-      const updates = {};
-  
-      if (name) updates.name = name;
-      if (description) updates.description = description;
-      if (price) updates.price = price;
-      if (discount) updates.discount = discount;
-      if (coverImage) updates.coverImage = coverImage;
-      if (sizes) updates.sizes = sizes;
+};
+export const getAllCategories = async (req, res) => {
+  try {
+    const categories = await Category.find();
+    return res.status(200).json({ categories });
+  }
+  catch (error) {
+    return res.json(error);
+  }
+}
+export const editProduct = async (req, res) => {
+  const { id } = req.params;
+  const { name, category, images, description, price, discount, imagesToDelete, newImages, coverImage, sizes, colornames } = req.body;
 
-      if(images) updates.images = images;
-      // Handle image deletion
-      if (imagesToDelete && imagesToDelete.length > 0) {
-        updates.images = product.images.filter(image => !imagesToDelete.includes(image));
-      }
-  
-      // Add new images if provided
-      if (newImages && newImages.length > 0) {
-        updates.images = [...product.images, ...newImages];
-      }
-  
-      // Update category if provided
-      if (category) {
-        const cat = await Category.findOne({ name: category });
-        if (!cat) {
-          return res.status(404).json({ error: 'Category not found' });
-        }
-        updates.category = category;
-      }
-  
-      // If colornames provided, find matching colors
-      if (colornames && colornames.length > 0) {
-        const colorsData = await Color.find({ colorname: { $in: colornames } });
-        if (colorsData.length !== colornames.length) {
-          return res.status(400).json({ error: 'One or more colors are invalid' });
-        }
-  
-        updates.colors = colorsData.map(color => ({
-          colorname: color.colorname,
-          colorcode: color.colorcode,
-        }));
-      }
-  
-      // Recalculate discounted price if price or discount changes
-      if (price || discount) {
-        const updatedPrice = price || product.price;
-        const updatedDiscount = discount || product.discount;
-        updates.discountedPrice = updatedPrice - (updatedPrice * updatedDiscount) / 100;
-      }
-  
-      // Apply updates to the product
-      Object.assign(product, updates);
-      const updatedProduct = await product.save();
-  
-      return res.status(200).json(updatedProduct);
-    } catch (error) {
-      return res.status(500).json({ error: 'Error editing product', details: error.message });
+  try {
+    // Find the product by ID
+    const product = await Product.findOne({ productId: Number(id) });
+    if (!product) {
+      return res.status(404).json({ error: 'Product not found' });
     }
-  };
-  
+
+    const updates = {};
+
+    if (name) updates.name = name;
+    if (description) updates.description = description;
+    if (price) updates.price = price;
+    if (discount) updates.discount = discount;
+    if (coverImage) updates.coverImage = coverImage;
+    if (sizes) updates.sizes = sizes;
+
+    if (images) updates.images = images;
+    // Handle image deletion
+    if (imagesToDelete && imagesToDelete.length > 0) {
+      updates.images = product.images.filter(image => !imagesToDelete.includes(image));
+    }
+
+    // Add new images if provided
+    if (newImages && newImages.length > 0) {
+      updates.images = [...product.images, ...newImages];
+    }
+
+    // Update category if provided
+    if (category) {
+      const cat = await Category.findOne({ name: category });
+      if (!cat) {
+        return res.status(404).json({ error: 'Category not found' });
+      }
+      updates.category = category;
+    }
+
+    // If colornames provided, find matching colors
+    if (colornames && colornames.length > 0) {
+      const colorsData = await Color.find({ colorname: { $in: colornames } });
+      if (colorsData.length !== colornames.length) {
+        return res.status(400).json({ error: 'One or more colors are invalid' });
+      }
+
+      updates.colors = colorsData.map(color => ({
+        colorname: color.colorname,
+        colorcode: color.colorcode,
+      }));
+    }
+
+    // Recalculate discounted price if price or discount changes
+    if (price || discount) {
+      const updatedPrice = price || product.price;
+      const updatedDiscount = discount || product.discount;
+      updates.discountedPrice = updatedPrice - (updatedPrice * updatedDiscount) / 100;
+    }
+
+    // Apply updates to the product
+    Object.assign(product, updates);
+    const updatedProduct = await product.save();
+
+    return res.status(200).json(updatedProduct);
+  } catch (error) {
+    return res.status(500).json({ error: 'Error editing product', details: error.message });
+  }
+};
+
 
 
 
 export const editCategory = async (req, res) => {
-    console.log("Endpoint hit: editCategory");
-  
-    let { category, newcategory, proImage, discount } = req.body;
-    console.log("Request body:", req.body);
-  
-    if (!category) {
-      console.log("Error: category not provided");
-      return res.status(400).json({ error: "Category not provided" });
-    }
-  
-    try {
-      if (category && newcategory) {
-        console.log(`Updating category name from ${category} to ${newcategory}`);
-        const cate = await Category.findOneAndUpdate({ name: category }, { name: newcategory });
-        category = newcategory;
-        if (!cate) {
-          console.log("Error: category not found");
-          return res.json({ error: "Category not found" });
-        }
-  
-        console.log(`Finding products with category: ${category}`);
-        const prods = await Product.find({ category: category });
-        
-        if (prods.length > 0) {
-          console.log(`Found ${prods.length} products. Updating categories...`);
-          
-          const updatedproducts = await Promise.all(prods.map(async prod => {
-            prod.category = newcategory;
-            await prod.save();
-            return prod;
-          }));
-          console.log("Products updated successfully");
-        } else {
-          console.log("No products found with the given category");
-        }
-      }
-  
-      const updates = {};
-      if (proImage) updates.proImage = proImage;
-      if (discount) updates.discount = Number(discount);
-  
-      if (Object.keys(updates).length > 0) {
-        console.log("Updating category with additional fields:", updates);
-        const newcat = await Category.findOneAndUpdate({ name: category }, updates);
-      }
-  
-      console.log("Category updated successfully");
-      return res.status(200).json({ message: "Category updated successfully" });
-    } catch (error) {
-      console.log("Error occurred:", error);
-      return res.status(500).json({ error });
-    }
-  };
+  console.log("Endpoint hit: editCategory");
 
-  
-export const deleteCategory = async (req, res) => {
-    const { category } = req.body;
-    
-    try {
-      const cat = await Category.findOneAndDelete({ name: category });
-      
-      if (cat) {
-        const products = await Product.find({ category: category });
-        
-        const deletedProducts = await Promise.all(products.map(async product => {
-          await product.deleteOne();
-          return product.productId; // Returning the ID of the deleted product
-        }));
-  
-        return res.status(200).json({
-          message: 'Category and its products deleted successfully',
-          deletedProducts: deletedProducts,
-        });
-      } else {
-        return res.status(404).json({ message: 'Category not found' });
+  let { category, newcategory, proImage, discount } = req.body;
+  console.log("Request body:", req.body);
+
+  if (!category) {
+    console.log("Error: category not provided");
+    return res.status(400).json({ error: "Category not provided" });
+  }
+
+  try {
+    if (category && newcategory) {
+      console.log(`Updating category name from ${category} to ${newcategory}`);
+      const cate = await Category.findOneAndUpdate({ name: category }, { name: newcategory });
+      category = newcategory;
+      if (!cate) {
+        console.log("Error: category not found");
+        return res.json({ error: "Category not found" });
       }
-    } catch (error) {
-      console.error(error);
-      return res.status(500).json({ message: 'Internal server error' });
+
+      console.log(`Finding products with category: ${category}`);
+      const prods = await Product.find({ category: category });
+
+      if (prods.length > 0) {
+        console.log(`Found ${prods.length} products. Updating categories...`);
+
+        const updatedproducts = await Promise.all(prods.map(async prod => {
+          prod.category = newcategory;
+          await prod.save();
+          return prod;
+        }));
+        console.log("Products updated successfully");
+      } else {
+        console.log("No products found with the given category");
+      }
     }
-  };
-  export const getCategory = async(req,res)=>{
-    const {name}= req.params;
-    console.log(typeof(name))
-    if(!name) return res.status(400).json({"message":"name is not present"});
-    try{
-      const category = await Category.findOne({name:name});
-      console.log(category)
-      return res.status(200).json({category});
+
+    const updates = {};
+    if (proImage) updates.proImage = proImage;
+    if (discount) updates.discount = Number(discount);
+
+    if (Object.keys(updates).length > 0) {
+      console.log("Updating category with additional fields:", updates);
+      const newcat = await Category.findOneAndUpdate({ name: category }, updates);
     }
-    
-    catch(error){
-      console.log("hi")
-      return res.status(500).json({error});
-    }
-  }
-  export const getProductsByCategory = async(req,res)=>{
-    let {cate} = req.params;
-    if(!cate){
-      return res.json({"error":"category not found"});
-    }
-    try{
-      const cat = await Category.findOne({name:cate});
-      if(!cat){ return res.json({error:"category not found"});}
-      const products = await Product.find({category:cat.name});
-      
-        const updatedProducts = products.map(product => {
-          const updatedProduct = product.toObject();
-          updatedProduct.price = updatedProduct.price * req.Currency;
-          return updatedProduct;
-      });
-      return res.json(updatedProducts);
-    }
-    catch(error){
-      return res.json({"error":error});
-    }
-  }
-export const getAllProducts= async(req,res)=>{
-   let query = {}
-  try{
-    const {category} = req.body;
-  if(category){
-    const cat = await Category.findOne({name:category});
-    if(cat)
-    query.category = category;
-  else{
-    return res.status(400).json({error:"category is invalid"});
-  }   
-  }
-console.log("I am safe")
-  const products = await Product.find(query);
-//   const updatedProducts = products.map(product => {
-//     const updatedProduct = product.toObject();
-//     updatedProduct.price = updatedProduct.price * req.Currency;
-//     return updatedProduct;
-// });
-  console.log("i am invoked");
-  return res.status(200).json(products);
-  }
-  catch(e){
-    res.status(400).json({error:e});
+
+    console.log("Category updated successfully");
+    return res.status(200).json({ message: "Category updated successfully" });
+  } catch (error) {
+    console.log("Error occurred:", error);
+    return res.status(500).json({ error });
   }
 };
 
-export const getProductById = async(req,res)=>{
-  try{
-    const {id} = req.params;
-    
-    console.log("id",id);
-    if (!id){
-      return res.status(400).json({error:"id not found "});
+
+export const deleteCategory = async (req, res) => {
+  const { category } = req.body;
+
+  try {
+    const cat = await Category.findOneAndDelete({ name: category });
+
+    if (cat) {
+      const products = await Product.find({ category: category });
+
+      const deletedProducts = await Promise.all(products.map(async product => {
+        await product.deleteOne();
+        return product.productId; // Returning the ID of the deleted product
+      }));
+
+      return res.status(200).json({
+        message: 'Category and its products deleted successfully',
+        deletedProducts: deletedProducts,
+      });
+    } else {
+      return res.status(404).json({ message: 'Category not found' });
+    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+};
+export const getCategory = async (req, res) => {
+  const { name } = req.params;
+  console.log(typeof (name))
+  if (!name) return res.status(400).json({ "message": "name is not present" });
+  try {
+    const category = await Category.findOne({ name: name });
+    console.log(category)
+    return res.status(200).json({ category });
+  }
+
+  catch (error) {
+    console.log("hi")
+    return res.status(500).json({ error });
+  }
+}
+export const getProductsByCategory = async (req, res) => {
+  let { cate } = req.params;
+  if (!cate) {
+    return res.json({ "error": "category not found" });
+  }
+  try {
+    const cat = await Category.findOne({ name: cate });
+    if (!cat) { return res.json({ error: "category not found" }); }
+    const products = await Product.find({ category: cat.name });
+
+    const updatedProducts = products.map(product => {
+      const updatedProduct = product.toObject();
+      updatedProduct.price = updatedProduct.price * req.Currency;
+      return updatedProduct;
+    });
+    return res.json(updatedProducts);
+  }
+  catch (error) {
+    return res.json({ "error": error });
+  }
+}
+export const getAllProducts = async (req, res) => {
+  let query = {}
+  try {
+    const { category } = req.body;
+    if (category) {
+      const cat = await Category.findOne({ name: category });
+      if (cat)
+        query.category = category;
+      else {
+        return res.status(400).json({ error: "category is invalid" });
+      }
+    }
+    console.log("I am safe")
+    const products = await Product.find(query);
+    //   const updatedProducts = products.map(product => {
+    //     const updatedProduct = product.toObject();
+    //     updatedProduct.price = updatedProduct.price * req.Currency;
+    //     return updatedProduct;
+    // });
+    console.log("i am invoked");
+    return res.status(200).json(products);
+  }
+  catch (e) {
+    res.status(400).json({ error: e });
+  }
+};
+
+export const getProductById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    console.log("id", id);
+    if (!id) {
+      return res.status(400).json({ error: "id not found " });
     }
     console.log("abcd")
-    const product = await Product.findOne({"productId":id});
+    const product = await Product.findOne({ "productId": id });
     console.log("pqrst")
-    if(!product){
-      return res.status(400).json({error:"invalid product id"});
+    if (!product) {
+      return res.status(400).json({ error: "invalid product id" });
     }
-    product.views+=1;
+    product.views += 1;
     await product.save();
-    if(req.user){
-      const abcd = await RecentlyViewed.createOrUpdate(req.user.email,product);
+    if (req.user) {
+      const abcd = await RecentlyViewed.createOrUpdate(req.user.email, product);
     }
-    
-    
+
+
     return res.status(200).json(product);
   }
-  catch(e){
+  catch (e) {
     return res.status(500).json(e);
   }
 }
 
 
-export const deleteProductByID = async(req,res)=>{
-  try{
-const id = req.params.id;
-if(!id){
-  return res.json({error:"id not found"});
-}
-console.log(id);
-const prod = await Product.findOneAndDelete({productId:Number(id)});
-return res.json({message:"product successfully deleted"});
+export const deleteProductByID = async (req, res) => {
+  try {
+    const id = req.params.id;
+    if (!id) {
+      return res.json({ error: "id not found" });
+    }
+    console.log(id);
+    const prod = await Product.findOneAndDelete({ productId: Number(id) });
+    return res.json({ message: "product successfully deleted" });
   }
-  catch(error){
-    return res.json({error:"product not found"});
+  catch (error) {
+    return res.json({ error: "product not found" });
   }
 }
-export const sortPriceProduct = async(req, res) => {
+export const sortPriceProduct = async (req, res) => {
   try {
     const { order, category } = req.body;
     let filters = {};
-    
+
     if (category) {
       const cat = await Category.findOne({ name: category });
       if (cat) {
@@ -340,20 +341,20 @@ export const sortPriceProduct = async(req, res) => {
         return res.status(400).json({ error: "Invalid category" });
       }
     }
-    
+
     let sortCriteria = {};
     if (order === 'asc') {
       sortCriteria.price = 1; // Ascending order
     } else if (order === 'desc') {
       sortCriteria.price = -1; // Descending order
     }
-    
+
     const products = await Product.find(filters).sort(sortCriteria);
     const updatedProducts = products.map(product => {
       const updatedProduct = product.toObject();
       updatedProduct.price = updatedProduct.price * req.Currency;
       return updatedProduct;
-  });
+    });
     return res.status(200).json(updatedProducts);
   } catch (error) {
     return res.status(500).json({ error: error.message });
@@ -446,7 +447,7 @@ export const fetchProducts = async (req, res) => {
 //     else{
 //      products = await Product.find(filter).sort(sort).skip(skip).limit(limit);
 //   }
-  
+
 
 //     res.json(products);
 //   } catch (error) {
@@ -655,7 +656,7 @@ export const fetchProducts = async (req, res) => {
 //     else{
 //      products = await Product.find(filter).sort(sort).skip(skip).limit(limit);
 //   }
-   
+
 
 //     const total = await Product.countDocuments(filter);
 
@@ -675,7 +676,7 @@ export const fetchProducts = async (req, res) => {
 export const filters = async (req, res) => {
   try {
     const { category, colors, sizes, sortBy, search } = req.query;
-console.log(req.query)
+    console.log(req.query)
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 6;
     const skip = (page - 1) * limit;
@@ -693,17 +694,10 @@ console.log(req.query)
     }
 
     // Filter by colors
-    if (colors && colors.length > 0) {
-      const colorDocs = await Color.find({ colorname: { $in: colors } });
-      if (colorDocs.length > 0) {
-        const colorcodes = colorDocs.map(c => c.colorcode);
-        filter['colors.colorcode'] = { $in: colorcodes };
-      } else {
-        return res.status(400).json({ error: 'No valid colors found' });
-      }
+    if (colors && Array.isArray(colors) && colors.length > 0) {
+      filter.colors = { $in: colors }; // Use the array directly
     }
 
-    // Sorting logic
     let sort = {};
     switch (sortBy) {
       case 'popularity':
@@ -718,9 +712,6 @@ console.log(req.query)
       case 'priceDesc':
         sort = { price: -1 }; // Highest price first
         break;
-      case 'discount':
-        sort = { discount: -1 }; // Highest discount first
-        break;
       default:
         sort = {};
     }
@@ -733,7 +724,7 @@ console.log(req.query)
         $or: [
           { name: regex },
           { category: regex },
-          { 'colors.colorname': regex }, // Explicitly search within colorname
+          { colors: regex }, // Explicitly search within colorname
           { description: regex },
           { sizes: regex }
         ]
@@ -742,27 +733,55 @@ console.log(req.query)
 
     // Combine search filter with other filters
     const combinedFilter = { ...filter, ...searchFilter };
-
-    // Fetch products based on filter and sort
-    const products = await Product.find(combinedFilter)
+    const products = await PrintfullProduct.find(combinedFilter)
       .sort(sort)
       .skip(skip)
       .limit(limit);
 
-    const total = await Product.countDocuments(combinedFilter);
+    if (products) {
+      const productDetails = await Promise.all(
+        products.map(async (product) => {
+          // Fetch additional details for each product
+          const additionalDetailsResponse = await axios.get(
+            `https://api.printful.com/store/products/${product.productId}`,
+            {
+              headers: {
+                Authorization: `Bearer ${process.env.printful_token}`,
+              },
+            }
+          );
 
-    // Return response with pagination
-    res.status(200).json({
-      products,
-      total,
-      page,
-      limit,
-    });
+          const additionalDetails = additionalDetailsResponse.data.result;
+          const price = additionalDetailsResponse.data.result.sync_variants[0].retail_price;
+          // Combine the base product data with additional details
+          return {
+            id: product.productId,
+            name: product.name,
+            variants: additionalDetails.sync_product.variants,
+            synced: additionalDetails.sync_product.synced,
+            thumbnail_url: product.coverImage,
+            is_ignored: additionalDetails.sync_product.is_ignored,
+            price: price, // Append additional details
+
+          };
+        })
+      );
+
+      // Send the processed product details to the frontend
+
+      const total = await PrintfullProduct.countDocuments(combinedFilter);
+      res.status(200).json({
+        "products": productDetails,
+        total,
+        page,
+        limit,
+      });
+    }
   } catch (error) {
-    console.error('Error fetching products:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.error(error);
+    res.status(500).json({ error });
   }
-};
+}
 
 
 const searchProducts = async (searchTerm) => {
@@ -773,7 +792,7 @@ const searchProducts = async (searchTerm) => {
         { name: regex },
         { category: regex },
         { sizes: regex },
-        {colors:regex},
+        { colors: regex },
         { description: regex },
       ]
     });
@@ -785,7 +804,7 @@ const searchProducts = async (searchTerm) => {
 };
 
 
-export const search =  async (req, res) => {
+export const search = async (req, res) => {
   const { q } = req.query;
   if (!q) {
     return res.status(400).send('Query parameter "q" is required');
@@ -850,7 +869,7 @@ export const getColorById = async (req, res) => {
   try {
     const color = await Color.findById(id);
     if (!color) return res.status(404).json({ message: 'Color not found' });
-    
+
     res.status(200).json(color);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -878,7 +897,7 @@ export const editColor = async (req, res) => {
     // Update the color references in products
     await Product.updateMany(
       { 'colors.colorname': oldColorName, 'colors.colorcode': oldColorCode }, // Match old colorname and colorcode
-      { 
+      {
         $set: {
           'colors.$[element].colorname': colorname, // Update new colorname
           'colors.$[element].colorcode': colorcode  // Update new colorcode
@@ -896,33 +915,33 @@ export const editColor = async (req, res) => {
 
 
 
-export const AddAndRemoveFavourites = async(req,res)=>{
-  const {productId} = req.params;
+export const AddAndRemoveFavourites = async (req, res) => {
+  const { productId } = req.params;
   console.log("Hellow major")
-  if(!productId)return res.json({error:"product Id not found"});
-  try{
+  if (!productId) return res.json({ error: "product Id not found" });
+  try {
     console.log("hello surya");
-   let message =  await Favourites.AddandDelete(req.user.email,productId);
-   console.log(message);
-   console.log("hello surya")
-   return res.json({message:message})
+    let message = await Favourites.AddandDelete(req.user.email, productId);
+    console.log(message);
+    console.log("hello surya")
+    return res.json({ message: message })
 
   }
-  catch(error){
-    return res.status(500).json({"error":error.message});
+  catch (error) {
+    return res.status(500).json({ "error": error.message });
   }
 }
 
 export const addToFav = async (req, res) => {
-  const { productId } = req.body;
-  
+  const { productId, variantId } = req.body;
+  console.log(req.body)
   try {
     if (!productId) {
       return res.status(400).json({ error: "Product ID is required" });
     }
 
     // Assuming req.user.email is available from your verifyAuthToken middleware
-    const pr = await Favourites.addToFavourites(req.user.email, productId);
+    const pr = await Favourites.addToFavourites(req.user.email, productId, variantId);
 
     return res.status(200).json({ message: "Product added to favourites" });
   } catch (error) {
@@ -937,14 +956,14 @@ export const addToFav = async (req, res) => {
   }
 };
 
-export const remToFav = async(req,res)=>{
-  const {productId} = req.body;
-  try{
-    const pr = await Favourites.removeFromFavourites(req.user.email,productId);
-    return res.status(200).json({message:"product removed"})
+export const remToFav = async (req, res) => {
+  const { productId, variantId } = req.body;
+  try {
+    const pr = await Favourites.removeFromFavourites(req.user.email, productId, variantId);
+    return res.status(200).json({ message: "product removed" })
   }
-  catch(error){
-    return res.status(500).json({error:error.message});
+  catch (error) {
+    return res.status(500).json({ error: error.message });
   }
 }
 
@@ -952,23 +971,172 @@ export const remToFav = async(req,res)=>{
 
 export const FavouriteProducts = async (req, res) => {
   try {
-      const fav = await Favourites.findOne({ email: req.user.email });
-      if (!fav || !fav.products.length) {
-          return res.status(200).json({ products:null });
-      }
+    const fav = await Favourites.findOne({ email: req.user.email });
+    console.log(fav)
+    if (!fav || !fav.products.length) {
+      return res.status(200).json({ products: null });
+    }
+    const products = await Promise.all(fav.products.map(async (favproduct) => {
+      console.log(favproduct)
+      const product = await axios.get(`https://api.printful.com/store/products/${favproduct.productId}`, {
+        headers: {
+          Authorization: `Bearer ${process.env.printful_token}`,
+        },
+      });
+      const varproduct = product.data.result.sync_variants.filter(variant => variant.id.toString() === favproduct.variantId.toString())[0];
+      console.log(varproduct)
+      return varproduct;
+    }));
 
-      // Fetch the product details for each product ID in the favourites
-      const products = await Promise.all(fav.products.map(async (productId) => {
-          const product = await axios.get(`https://api.printful.com/store/products/${productId}`, {
-            headers: {
-                Authorization: `Bearer ${process.env.printful_token}`,
-            },
-        });
-          return product.data.result;
-      }));
-
-      res.status(200).json({products });
+    res.status(200).json({ products });
   } catch (error) {
-      res.status(500).json({ message: error.message });
+    console.log(error)
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
+export const AddProductToCategory = async (req, res) => {
+  try {
+    
+
+    const { categoryId, categoryName, productId } = req.body;
+
+    if (!productId || (!categoryId && !categoryName)) {
+      return res.status(400).json({ error: "Product ID and either Category ID or Category Name are required." });
+    }
+
+    let category;
+
+    if (categoryId) {
+      category = await Category.findById(categoryId);
+    } else if (categoryName) {
+      category = await Category.findOne({ name: categoryName });
+    }
+
+    if (!category) {
+      return res.status(404).json({ error: "Category not found." });
+    }
+
+    // Check if the product ID already exists in the products array
+    if (category.products.includes(productId)) {
+      return res.status(400).json({ error: "Product is already in this category." });
+    }
+
+    // Add the product ID to the category's products array
+    category.products.push(productId);
+    await category.save();
+
+    res.status(200).json({ message: "Product added to category successfully.", category });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "An error occurred while adding the product to the category." });
+  }
+};
+
+
+
+export const getProductsByCategoryPrintfull = async (req, res) => {
+  console.log(req.body)
+  try {
+    const catname = req.params.catname;
+    console.log(catname)// Assuming the categoryId is passed as a route parameter
+
+    if (!catname) {
+      return res.status(400).json({ error: "Category ID is required." });
+    }
+
+    // Fetch the category from the database
+    const category = await Category.findOne({ name: catname });
+
+    if (!category) {
+      return res.status(404).json({ error: "Category not found." });
+    }
+
+    if (!category.products || (category.products).length === 0) {
+      return res.status(404).json({ error: "No products found in this category." });
+    }
+
+    // Fetch product details from Printful API for each product ID in the category
+    const productPromises = category.products.map(async (productId) => {
+      const productdetails = await axios.get(
+        `https://api.printful.com/store/products/${productId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.printful_token}`,
+          },
+        }
+      );
+      const product = productdetails.data.result.sync_product;
+      const price = productdetails.data.result.sync_variants[0].retail_price;
+      return {
+        id: product.id,
+        name: product.name,
+        variants: product.variants,
+        synced: product.synced,
+        thumbnail_url: product.thumbnail_url,
+        is_ignored: product.is_ignored,
+        price: price, // Append additional details
+
+      };
+
+    })
+
+    const products = await Promise.all(productPromises);
+
+    res.status(200).json({ category: category.name, products: products });
+  } catch (error) {
+    console.error(error);
+
+    if (error.response) {
+      // Error response from Printful API
+      return res.status(error.response.status).json({ error: error.response.data });
+    }
+
+    res.status(500).json({ error: "An error occurred while fetching the products." });
+  }
+};
+
+export const editPrintFullProduct = async (req, res) => {
+  const { id } = req.params;
+  const { category } = req.body;
+
+  try {
+    // Find the product by ID
+    const product = await PrintfullProduct.findOne({ productId: Number(id) });
+    if (!product) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+
+    const updates = {};
+
+
+
+
+
+
+
+    // Update category if provided
+    if (category) {
+      const cat = await Category.findOne({ name: category });
+      if (!cat) {
+        return res.status(404).json({ error: 'Category not found' });
+      }
+      updates.category = category;
+    }
+
+    // If colornames provided, find matching colors
+
+
+
+    // Recalculate discounted price if price or discount changes
+
+    // Apply updates to the product
+    Object.assign(product, updates);
+    const updatedProduct = await product.save();
+
+    return res.status(200).json(updatedProduct);
+  } catch (error) {
+    return res.status(500).json({ error: 'Error editing product', details: error.message });
   }
 };

@@ -18,6 +18,10 @@ const orderItemSchema = new mongoose.Schema({
     required: true,
     min: 1,
   },
+  price: {
+    type: Number,
+    required: true,
+  },
 });
 
 const paymentDetailsSchema = new mongoose.Schema({
@@ -32,7 +36,7 @@ const paymentDetailsSchema = new mongoose.Schema({
   status: {
     type: String,
     required: true,
-    enum: ['Pending', 'Completed', 'Failed', 'requires_action'], 
+    enum: ['Pending', 'Completed', 'Failed', 'requires_action','succeeded'], 
   },
 });
 

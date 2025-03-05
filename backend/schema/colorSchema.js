@@ -1,11 +1,6 @@
 import mongoose from "mongoose";
 const ColorSchema = new mongoose.Schema({
-    colorcode :{
-        unique:true,
-        type:String,
-        required:true
-    },
-    colorname:{
+    name:{
         unique:true,
         type:String,
         required:true

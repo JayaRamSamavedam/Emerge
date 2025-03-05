@@ -20,10 +20,9 @@ const Favourites = () => {
         try {
             const response = await Request('GET', '/prod/getFavourites'); // Adjust the endpoint if necessary
             if (response && response.data) {
-
-
+                console.log("hi")
                 setCartItems(response.data.products || []);
-                console.log(response.data) // Ensure products is an array
+                console.log(response.data.products) // Ensure products is an array
                 console.log(cartItems)
             } else {
                 setCartItems([]); // Set to an empty array if response is invalid
@@ -111,11 +110,11 @@ const Favourites = () => {
                                 >
                                     <Row gutter={[16, 16]} align="middle">
                                         <Col span={4} className="text-center">
-                                            <img src={item.sync_product.thumbnail_url} alt={item.sync_product.name} style={{ width: '80px', objectFit: 'cover' }} />
+                                            <img src={item.files[1].thumbnail_url} alt={item.name} style={{ width: '80px', objectFit: 'cover' }} />
                                         </Col>
                                         <Col span={16}>
-                                            <h3 className="text-xl font-semibold">{item.sync_product.name}</h3>
-                                            <p className="text-gray-600">Price: ${item.sync_variants[0].retail_price}</p>
+                                            <h3 className="text-xl font-semibold">{item.name}</h3>
+                                            <p className="text-gray-600">Price: ${item.retail_price}</p>
                                             {/* <p className="text-gray-600">Total: ${(item.discountedPrice * item.quantity).toFixed(2)}</p> */}
                                         </Col>
                                     </Row>

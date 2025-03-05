@@ -11,17 +11,18 @@ import {
 } from "antd";
 import { DeleteOutlined } from "@ant-design/icons";
 import { Request } from "../helpers/axios_helper";
-import { useNavigate } from "react-router-dom";
 
-const Cart = () => {
-  const navigate = useNavigate();
+const CheckOutCart = ({ shippingCost }) => {
   const [cartItems, setCartItems] = useState([]); // Initialize as an empty array
   const [loading, setLoading] = useState(false);
   const [totalCost, setTotalCost] = useState(0);
+
+  // Fetch the cart details when the component mounts
   useEffect(() => {
     fetchCartDetails();
   }, []);
 
+  // Function to fetch cart details from the server
   const fetchCartDetails = async () => {
     setLoading(true);
     try {
@@ -40,6 +41,7 @@ const Cart = () => {
     }
   };
 
+  // Function to increment quantity
   const incrementQuantity = async (productId, variantId) => {
     try {
       await Request("PUT", `/cart/increment/${productId}`, {
@@ -81,22 +83,8 @@ const Cart = () => {
       message.error("Failed to remove item");
     }
   };
-
-  // Function to clear the entire cart
-  const clearCart = async () => {
-    try {
-      await Request("POST", "/cart/clear");
-      fetchCartDetails(); // Refresh the cart after clearing
-      message.success("Cart cleared");
-    } catch (error) {
-      message.error("Failed to clear cart");
-    }
-  };
-
   return (
-    <div className={`container mx-auto p-8 mt-20`}>
-      <h1 className="text-4xl font-bold text-center mb-8">Your Cart</h1>
-
+    <div className={`container mx-auto p-8 mt-0`}>
       {loading ? (
         <div className="flex space-x-2 justify-center items-center h-screen dark:invert">
           <span className="sr-only">Loading...</span>
@@ -104,7 +92,7 @@ const Cart = () => {
           <div className="h-8 w-8 bg-black rounded-full animate-bounce [animation-delay:-0.15s]"></div>
           <div className="h-8 w-8 bg-black rounded-full animate-bounce"></div>
         </div>
-      ) : cartItems.length === 0 ? ( // Handle empty cart case
+      ) : cartItems.length === 0 ? (
         <div className="flex justify-center items-center h-64">
           <p className="text-xl text-gray-600">Your cart is empty</p>
         </div>
@@ -172,22 +160,24 @@ const Cart = () => {
           />
 
           <div className="cart-summary text-center mt-8">
-            <h3 className="text-2xl font-bold">
-              Total Cost: ${totalCost.toFixed(2)}
-            </h3>
-
-            <div className="mt-4 flex justify-center space-x-4">
-              <Button type="primary" danger onClick={clearCart}>
-                Clear Cart
-              </Button>
-              <Button
-                type="primary"
-                onClick={() =>
-                  navigate("/checkout", { state: { fromCart: true } })
-                }
-              >
-                Checkout
-              </Button>
+            <div className="flex flex-col w-full">
+              <div className="flex flex-row justify-between">
+                <h1>Sub total</h1>
+                <h1> ${totalCost.toFixed(2)}</h1>
+              </div>
+              <div className="flex flex-row justify-between">
+                <h1>Shipping Charges</h1>
+                <h1>
+                  {shippingCost ? `$${shippingCost}` : "add address"}
+                </h1>
+              </div>
+              {shippingCost && <div className="flex flex-row justify-between border-t-2 pt-2">
+                <h1>Total Charges</h1>
+                <h1>
+                  ${Number(shippingCost)+totalCost}
+                </h1>
+              </div>}
+              
             </div>
           </div>
         </>
@@ -196,4 +186,4 @@ const Cart = () => {
   );
 };
 
-export default Cart;
+export default CheckOutCart;

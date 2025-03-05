@@ -6,6 +6,10 @@ const donationSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    ministry:{
+        type:String,
+        required:true,
+    },
     amount: {
         type: Number,
         required: true,
@@ -16,9 +20,9 @@ const donationSchema = new mongoose.Schema({
         required: true,
         default: 'USD' // Default to USD, but can change based on Stripe or user input
     },
-    stripePaymentId: {
+    transactionId: {
         type: String, 
-        required: true // Stripe Payment ID for tracking the transaction
+         // Stripe Payment ID for tracking the transaction
     },
     isRecurring: {
         type: Boolean,
@@ -28,7 +32,7 @@ const donationSchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     }
-});
+},{timestamps:true});
 
 const Donation = mongoose.model("Donation", donationSchema);
 export default Donation;

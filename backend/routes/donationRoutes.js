@@ -1,13 +1,12 @@
 import express from 'express';
-import { createOneTimeDonation, createRecurringDonation ,createCheckoutSession} from '../controllers/donationController.js';
-// import * as donationController from "../controllers/donationController.js"
+// import { createOneTimeDonation, createRecurringDonation ,createCheckoutSession} from '../controllers/donationController.js';
+import * as donationController from "../controllers/donationController.js"
+import verifyAuthToken from '../middlewares/verifyAuthToken.js';
+import  checkRoleAccess from '../middlewares/checkroleaccess.js';
+
+import requestLogger from '../middlewares/requestlogger.js';
 const router = express.Router();
-
-// Route for one-time donations
-router.post('/one-time', createOneTimeDonation);
-
-// Route for recurring donations
-router.post('/recurring', createRecurringDonation);
-router.post("/create-checkout-session",createCheckoutSession);
-
+router.post("/user/donate",verifyAuthToken,donationController.createDonation);
+router.get("/donations",verifyAuthToken,donationController.getDonations);
+router.get("/scheduledDonations",verifyAuthToken,donationController.getScheduledDonations);
 export default router;

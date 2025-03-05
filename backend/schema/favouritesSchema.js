@@ -1,120 +1,112 @@
 import mongoose from "mongoose";
-import Product from "./productSchema.js";
+
 const favouritesSchema = new mongoose.Schema({
-    email:{
-        type:String,
-        required:true,
-        unique:true,
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  products: [
+    {
+      productId: {
+        type: String,
+        required: true,
+      },
+      variantId: {
+        type: String,
+        required: true,
+      },
     },
-    products:{
-        type:[Number],
-    }
+  ],
 });
+
 // Add a product to the favourites
-favouritesSchema.statics.addToFavourites = async function(email, productId) {
-    try {
-        console.log(productId);
-
-        // Find the favourites list for the user by email
-        let favourites = await this.findOne({ email });
-
-        // If no favourites exist for the user, create a new favourites list
-        if (!favourites) {
-            favourites = new this({ email, products: [productId] });
-        } else {
-            // Check if the product is already in the favourites list
-            if (favourites.products.includes(Number(productId))) {
-                return favourites;
-            }
-
-            // Check if the product exists in the Product collection
-            const product = await Product.findOne({ productId: productId });
-            if (product) {
-                // Add the product to the favourites list
-                favourites.products.push(Number(productId));
-            } else {
-                throw new Error("Invalid Product Id");
-            }
-        }
-
-        // Save the updated favourites list
-        await favourites.save();
+favouritesSchema.statics.addToFavourites = async function (email, productId, variantId) {
+  try {
+    // Find the favourites list for the user by email
+    let favourites = await this.findOne({ email });
+    
+    if (!favourites) {
+      favourites = new this({ email, products: [{ productId, variantId }] });
+    } else {
+      // Check if the product with the variant is already in the favourites list
+      if (favourites.products.some((p) => p.productId === productId && p.variantId === variantId)) {
         return favourites;
-    } catch (error) {
-        throw new Error('Error in adding to favourites: ' + error.message);
+      }
+        favourites.products.push({ productId, variantId });
     }
+    await favourites.save();
+    return favourites;
+  } catch (error) {
+    throw new Error("Error in adding to favourites: " + error.message);
+  }
 };
 
+// Add and delete a product from favourites
+favouritesSchema.statics.AddandDelete = async function (email, productId, variantId) {
+  console.log("I have been called");
+  let message = "";
+  try {
+    let favourites = await this.findOne({ email });
 
-favouritesSchema.statics.AddandDelete = async function(email, productId) {
-    console.log("I have been called");
-    let message = "";
-    try {
-        let favourites = await this.findOne({ email });
-        if (!favourites) {
-            const product = await Product.findOne({productId:productId});
-            if (product) {
-                favourites = new this({ email, products: [productId] });
-                message = "added product to favourites";
-                await favourites.save();
-            } else {
-                throw new Error("Invalid Product Id");
-            }
-        } else {
-            const productIndex = favourites.products.indexOf(productId);
-            if (productIndex > -1) {
-                favourites.products.splice(productIndex, 1);
-                message = "product removed from favourites";
-            } else {
-                const product = await Product.findOne({productId:productId});
-                if (product) {
-                    favourites.products.push(Number(productId));
-                    message = "added product to favourites";
-                } else {
-                    throw new Error("Invalid Product Id");
-                }
-            }
-            await favourites.save();
-        }
-        return message;
-    } catch (error) {
-        throw error;
+    if (!favourites) {
+        favourites = new this({ email, products: [{ productId, variantId }] });
+        message = "added product to favourites";
+        await favourites.save();
+    } else {
+      const productIndex = favourites.products.findIndex(
+        (p) => p.productId === productId && p.variantId === variantId
+      );
+      if (productIndex > -1) {
+        favourites.products.splice(productIndex, 1);
+        message = "product removed from favourites";
+      } else {
+       
+          favourites.products.push({ productId, variantId });
+          message = "added product to favourites";
+      }
+      await favourites.save();
     }
+    return message;
+  } catch (error) {
+    throw error;
+  }
 };
 
-
-favouritesSchema.statics.isFavourite = async function(email,productId){
-    try{
-        const favourites = await this.findOne({email});
-        if(!favourites) return false;
-        else{
-            if(favourites.products.includes(productId)){
-                return true;
-            }
-            return false;
-        }
-    }catch(error){
-        return false;
+// Check if a product is a favourite
+favouritesSchema.statics.isFavourite = async function (email, productId, variantId) {
+  try {
+    const favourites = await this.findOne({ email });
+    if (!favourites) return false;
+    else {
+      return favourites.products.some(
+        (p) => p.productId === productId && p.variantId === variantId
+      );
     }
+  } catch (error) {
     return false;
-}
-// Remove a product from the favourites
-favouritesSchema.statics.removeFromFavourites = async function(email, productId) {
-    try {
-        const favourites = await this.findOne({ email });
-
-        if (!favourites) {
-            return null;
-        }
-
-        favourites.products = await favourites.products.filter(p => p !== productId);
-
-        await favourites.save();
-        return favourites;
-    } catch (error) {
-        throw error;
-    }
+  }
 };
 
-const Favourites = mongoose.model("Favourites",favouritesSchema);
+// Remove a product from the favourites
+favouritesSchema.statics.removeFromFavourites = async function (email, productId, variantId) {
+  try {
+    const favourites = await this.findOne({ email });
+
+    if (!favourites) {
+      return null;
+    }
+
+    favourites.products = favourites.products.filter(
+      (p) => !(p.productId === productId && p.variantId === variantId)
+    );
+
+    await favourites.save();
+    return favourites;
+  } catch (error) {
+    throw error;
+  }
+};
+
+const Favourites = mongoose.model("Favourites", favouritesSchema);
 export default Favourites;

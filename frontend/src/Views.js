@@ -33,6 +33,11 @@ import Printfull from "./Components/Printfull";
 import PrintfullDetailed from "./Components/PrintfullDetailed";
 
 import TestProductInfo from "./Components/TestProductInfo";
+import TokenizationForm from "./Payment";
+import CheckoutNew from "./Components/CheckoutNew";
+import ScrollToTop from "./ScrollTop";
+import DonationsList from "./Components/DonationCard";
+import CheckOutProduct from "./Components/CheckOutProduct";
 function Views() {
   const stripePromise = loadStripe("pk_test_51N4hU4SFkOxgvYC9PVnsAUrfAt1DrBgl6z5CWVVfBvFhgVM4Mi7EGquPBv4wDW1yxBh3wuHoozETR5CbfSsO1c5u00HediLTnN");
 
@@ -46,11 +51,14 @@ function Views() {
   return (
     <>
       {/* Conditionally render Navbar and Footer based on route */}
+      <ScrollToTop/>
       {!hideNavbarFooter && <NewNavbar />}
       <Routes>
+        <Route path="/viewdonations" element={<DonationsList/>}/>
         <Route path="/printfull" element={<Printfull/>}></Route>
-        
+        <Route path="/payment" element={<TokenizationForm/>}></Route>
         <Route path="/printfull/:id" element={<TestProductInfo/>}></Route>
+        <Route path="/PC" element={<CheckOutProduct />}/>
         <Route path="/" element={<NewHomePage />} />
         <Route path="/donation" element={<DonationForm />} />
         <Route path="/Shop" element={<Shop />} />
@@ -69,14 +77,15 @@ function Views() {
                <Route element={<UserProfile/>} path="/profile"/>
                <Route element={<Favourites/>} path="/wish-list"/>
                
-               <Route
+               {/* <Route
           path="/checkout"
           element={
             <Elements stripe={stripePromise}>
               <Checkout />
             </Elements>
           }
-        />
+        /> */}
+        <Route path="/checkout" element={<CheckoutNew/>}/>
           <Route path='/order-confirmation' element={  <Elements stripe={stripePromise}> <OrderConfirmation/></Elements>}/>
 
           </Route>

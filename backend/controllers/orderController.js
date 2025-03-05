@@ -6,6 +6,9 @@ import PDFDocument from 'pdfkit';
 import fs from 'fs';
 import Stripe from 'stripe'
 import axios from 'axios';
+import { Request } from '../helpers/axios_helpers.js';
+import { create } from 'domain';
+import { channel } from 'diagnostics_channel';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -31,205 +34,8 @@ async function placeOrderOnPrintful(items, shipmentAddress) {
   }
 }
 
-export const CartBuyNow = async (req, res) => {
-  try {
-    const { paymentDetails, shipmentAddress } = req.body;
 
-     // Ensure payment method is present
-     if (!paymentDetails || !paymentDetails.paymentMethodId) {
-      return res.status(400).send({ error: 'Payment method is missing or invalid.' });
-    }
-    const user = await User.findOne({ email: req.user.email });
-    if (!user) return res.status(404).send({ error: 'User not found' });
 
-    const cart = await Cart.findOne({ user: user.email });
-    if (!cart) return res.status(404).send({ error: 'Cart not found' });
-
-    let totalAmount = 0;
-    const itemsWithDetails = [];
-
-    for (const item of cart.items) {
-      const product =  await axios.get(`https://api.printful.com/store/products/${item.productId}`, {
-        headers: {
-            Authorization: `Bearer ${process.env.printful_token}`,
-        },
-    });
-  
-      if (!product) {
-        return res.status(404).send({ error: `Product with ID ${item.productId} not found` });
-      }
-      // const varproduct = product.data.result.sync_variants.filter(variant => variant.id === item.variantId);
-      const varproduct = product.data.result.sync_variants.filter(variant => variant.id.toString() === item.variantId.toString())[0];
-
-      const itemTotal = item.quantity * varproduct.retail_price;
-      totalAmount += itemTotal;
-      itemsWithDetails.push({
-        productId: product.data.result.sync_product.id,
-        variantId : item.variantId,
-        quantity: item.quantity,
-        price: varproduct.retail_price,
-      });
-    }
-
-    const paymentIntent = await stripe.paymentIntents.create({ amount: Math.round(totalAmount * 100),
-      currency: 'usd',
-      payment_method: paymentDetails.paymentMethodId,
-      confirm: true,
-      return_url: `${process.env.CLIENT}/order-confirmation?method=cart-buy-now`,
-      description: `Purchase from ${user.email}`,
-      payment_method_options: {
-        card: {
-          request_three_d_secure: 'automatic',
-        },
-      },
-      // Include the customer's billing details to comply with Indian regulations
-      shipping: {
-        name: shipmentAddress.name,
-        address: {
-          line1: shipmentAddress.street,
-          city: shipmentAddress.city,
-          state: shipmentAddress.state,
-          postal_code: shipmentAddress.postalCode,
-          country: shipmentAddress.country
-        }
-      }  });
-    console.log(paymentIntent)
-    const ca = await Cart.findOne({user:user.email});
-    ca.payementId = paymentIntent.id;
-    await ca.save();
-    const order = new Order({
-      user: req.user.email,
-      items: itemsWithDetails,
-      paymentDetails: {
-        method: 'stripe',
-        transactionId: paymentIntent.id,
-        status: paymentIntent.status,
-      },
-      shipmentAddress,
-      shipmentCharges: 50,
-      totalAmount,
-      orderStatusMessage: 'Order confirmed',
-    });
-
-    await order.save();
-
-    if (paymentIntent.status === 'requires_action' || paymentIntent.status === 'requires_source_action') {
-      return res.status(200).send({
-        requiresAction: true,
-        paymentIntentClientSecret: paymentIntent.client_secret,
-        nextActionUrl: paymentIntent.next_action.redirect_to_url.url, // URL for 3D Secure authentication
-      });
-    }
- // Step 2: After successful payment, place the order on Printful
- const placeOrderResponse = await placeOrderOnPrintful(itemsWithDetails, shipmentAddress);
-
- if (!placeOrderResponse || !placeOrderResponse.result || !placeOrderResponse.result.id) {
-   return res.status(500).send({ error: 'Failed to place order on Printful' });
- }
-
- order.externalId=placeOrderResponse.result.id
- await order.save();
-    await Cart.deleteOne({ user: user.email });
-    res.status(201).send(order);
-
-  } catch (error) {
-    console.error(error);
-    res.status(400).send({ error: error.message });
-  }
-};
-
-// Product Buy Now
-export const ProductBuyNow = async (req, res) => {
-  try {
-    const { productId,variantId, quantity, paymentDetails, shipmentAddress } = req.body;
-
-    const user = await User.findOne({ email: req.user.email });
-    if (!user) return res.status(404).send({ error: 'User not found' });
-
-    const product =  await axios.get(`https://api.printful.com/store/products/${productId}`, {
-      headers: {
-          Authorization: `Bearer ${process.env.printful_token}`,
-      },
-  });
-  console.log(variantId)
-  // const varproduct = product.data.result.sync_variants.filter(variant => variant.id === item.variantId);
-  const varproduct = product.data.result.sync_variants.filter(variant => variant.id.toString() === variantId.toString())[0];
-console.log(varproduct)
-    if (!product) return res.status(404).send({ error: 'Product not found' });
-
-    const totalAmount = varproduct.retail_price * quantity;
-
-    const paymentIntent = await stripe.paymentIntents.create({ amount: Math.round(totalAmount * 100),
-      currency: 'usd',
-      payment_method: paymentDetails.paymentMethodId,
-      confirm: true,
-      return_url: `${process.env.CLIENT}/order-confirmation?method=buy-now`,
-      description: `Purchase from ${user.email}`,
-      payment_method_options: {
-        card: {
-          request_three_d_secure: 'automatic',
-        },
-      },
-      // Include the customer's billing details to comply with Indian regulations
-      shipping: {
-        name: shipmentAddress.name,
-        address: {
-          line1: shipmentAddress.street,
-          city: shipmentAddress.city,
-          state: shipmentAddress.state,
-          postal_code: shipmentAddress.postalCode,
-          country: shipmentAddress.country
-        }
-      }  });
-
-    console.log(paymentIntent)
-    
-    const order = new Order({
-      user: user.email,
-      items: [{
-        productId: product.data.result.sync_product.id,
-        quantity,
-        price: varproduct.retail_price,
-        variantId,
-      }],
-      paymentDetails: {
-        method: 'stripe',
-        transactionId: paymentIntent.id,
-        status: paymentIntent.status,
-      },
-      shipmentAddress,
-      shipmentCharges: 50,
-      totalAmount,
-      orderStatusMessage: 'Order confirmed',
-    });
-
-    await order.save();
-
-    if (paymentIntent.status === 'requires_action' || paymentIntent.status === 'requires_source_action') {
-      return res.status(200).send({
-        requiresAction: true,
-        paymentIntentClientSecret: paymentIntent.client_secret,
-        nextActionUrl: paymentIntent.next_action.redirect_to_url.url, // URL for 3D Secure authentication
-      });
-    }
-
-const placeOrderResponse = await placeOrderOnPrintful([{
-  productId: productId,
-  variantId : variantId,
-  quantity: quantity,
-  price: varproduct.retail_price,
-}], shipmentAddress);
-if (!placeOrderResponse || !placeOrderResponse.result || !placeOrderResponse.result.id) {
-  return res.status(500).send({ error: 'Failed to place order on Printful' });
-}
-order.externalorderId = placeOrderResponse.result.id;
-await order.save();
-    res.status(201).send(order);
-  } catch (error) {
-    console.error(error);
-    res.status(400).send({ error: error.message });
-  }
-};
 export const confirmPayment = async (req, res) => {
   console.log("hi");
   try {
@@ -269,10 +75,7 @@ export const confirmPayment = async (req, res) => {
         }
       }
 
-      // Now place the order on Printful and update the order with the externalId
       const printfulOrder = await createPrintfulOrder(order);
-
-      // If the order was successfully placed on Printful, update the order with externalId
       if (printfulOrder && printfulOrder.id) {
         order.externalId = printfulOrder.id;
         await order.save();
@@ -323,7 +126,7 @@ const fetchPrintfulProduct = async (productId) => {
   }
 };
 
-const createPrintfulOrder = async (order) => {
+const createPrintfulOrder = async (order,shipment) => {
   try {
     console.log("Creating Printful Order...");
 
@@ -351,17 +154,18 @@ const createPrintfulOrder = async (order) => {
       })
     );
 
+    console.log(order.shipmentAddress)
     // Build the order payload
     const printfulOrderPayload = {
       "external_id": order._id,
-      "shipping": "STANDARD",
+      "shipping": `${shipment.id}`,
       "recipient": {
         "name": order.user,
         "comany":order.user,
         "address1": order.shipmentAddress.street,
         "address2": order.shipmentAddress.city || "",
         "city": order.shipmentAddress.city,
-        "state_code": "CA",
+        "state_code": order.shipmentAddress.state,
         "country_code":order.shipmentAddress.country,
         "zip": order.shipmentAddress.postalCode,
         "phone": order.shipmentAddress.phone || "9949837192",
@@ -379,6 +183,74 @@ console.log(printfulOrderPayload)
 
     console.log("Order successfully created on Printful:", response.data.result);
     return response.data.result;
+  } catch (error) {
+    // console.error("Error placing order on Printful:", error);
+    // if (error.response) {
+    //   console.error("Response Data:", error.response.data);
+    // }
+    // throw new Error("Failed to create order on Printful.");
+  }
+};
+export const getShipmentcost = async (req,res) => {
+  try {
+    console.log(req.body)
+    const user = await User.findOne({ email: req.user.email });
+    if (!user) return res.status(404).send({ error: 'User not found' });
+
+    // Fetch cart
+    const cart = await Cart.findOne({ user: user.email });
+   
+    console.log("Getting Printful Cost...");
+
+    // Map the items and fetch product details
+    const items = await Promise.all(
+      cart.items.map(async (item) => {
+        const productDetails = await fetchPrintfulProduct(item.productId);
+        const variant = productDetails.sync_variants.find(v => v.id.toString() === item.variantId.toString());
+        if (!variant) {
+          throw new Error(`Variant with ID ${item.variantId} not found in product ${item.productId}`);
+        }
+
+        return {
+          sync_product_id: variant.sync_product_id,
+          variant_id: variant.variant_id,
+          name:variant.name,
+          quantity: item.quantity,
+          retail_price: item.price,
+          sku:variant.sku,
+          currency:variant.currency,
+          files: variant.files.filter(file=> file.is_temporary === false) || [], // Include any associated files if available
+        };
+      })
+    );
+
+    console.log(req.body)
+    // Build the order payload
+   const shipmentAddress = req.body.shipmentAddress;
+    const printfulOrderPayload = {
+      
+      "recipient": {
+        "address1": shipmentAddress?.line1,
+        "city": shipmentAddress?.city,
+        "state_code": shipmentAddress?.state,
+        "country_code":shipmentAddress?.country,
+        "zip": shipmentAddress?.postalCode,
+        "phone": shipmentAddress?.phone || "9949837192",
+      },
+      "items":items,
+      "currency": "USD",
+"locale": "en_US"
+    };
+console.log(printfulOrderPayload)
+    // Send the request to Printful API to place the order
+    const response = await axios.post("https://api.printful.com/shipping/rates", printfulOrderPayload, {
+      headers: {
+        Authorization: `Bearer uSSK1gMk5klqbobX3mYKkWNJvam3V7noJIkiPjId`,
+      },
+    });
+    console.log(response)
+    console.log("Order successfully created on Printful:", response.data.result);
+    return res.json(response.data.result);
   } catch (error) {
     // console.error("Error placing order on Printful:", error);
     // if (error.response) {
@@ -693,21 +565,437 @@ export const deleteOrder = async (req, res) => {
   }
 
   try {
-    // Find and delete the order by ID
     const order = await Order.findByIdAndDelete(orderId);
-
-    // If no order found, send a 404 error
     if (!order) {
       return res.status(404).json({ error: 'Order not found' });
     }
-
-    // Return success response
     return res.status(200).json({ message: 'Order successfully deleted' });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
+}; 
+
+
+export const NewCartBuyNow = async (req, res) => {
+  try {
+    const { shipmentAddress, paymentInstrumentId ,shipment} = req.body;
+    console.log(req.body);
+    // Ensure payment method is present
+    if (!paymentInstrumentId) {
+      return res.status(400).send({ error: 'Payment method is missing or invalid.' });
+    }
+
+    // Fetch user
+    const user = await User.findOne({ email: req.user.email });
+    if (!user) return res.status(404).send({ error: 'User not found' });
+
+    // Fetch cart
+    const cart = await Cart.findOne({ user: user.email });
+    if (!cart) return res.status(404).send({ error: 'Cart not found' });
+
+    if (cart.payementId) {
+      return res.status(400).send({ error: 'Payment already done' });
+    }
+
+    let totalAmount = 0;
+    const itemsWithDetails = [];
+
+    for (const item of cart.items) {
+      const productResponse = await axios.get(`https://api.printful.com/store/products/${item.productId}`, {
+        headers: { Authorization: `Bearer ${process.env.printful_token}` },
+      });
+
+      if (!productResponse || !productResponse.data.result) {
+        return res.status(404).send({ error: `Product with ID ${item.productId} not found` });
+      }
+
+      const varproduct = productResponse.data.result.sync_variants.find(
+        (variant) => variant.id.toString() === item.variantId.toString()
+      );
+
+      if (!varproduct) {
+        return res.status(404).send({ error: `Variant with ID ${item.variantId} not found` });
+      }
+
+      const itemTotal = item.quantity * varproduct.retail_price;
+      totalAmount += itemTotal;
+
+      itemsWithDetails.push({
+        productId: productResponse.data.result.sync_product.id,
+        variantId: item.variantId,
+        quantity: item.quantity,
+        price: varproduct.retail_price,
+      });
+    }
+
+    // Step 1: Create Order
+    const order = new Order({
+      user: req.user.email,
+      items: itemsWithDetails,
+      shipmentAddress,
+      shipmentCharges: Number(shipment.rate),
+      totalAmount,
+      orderStatusMessage: 'Order created, awaiting payment',
+    });
+
+    await order.save();
+    try {
+      // Step 2: Process Payment (Reference ID set to order._id)
+      const createTransaction = await Request("post", "/v1/accounts/transactions", {
+        "amount":( totalAmount+order.shipmentCharges)*100,
+        "paymentInstrumentId": paymentInstrumentId,
+        "accountId": "acc-c8a42bea-a708-4165-beea-e1eb95b5000a",
+        "type": "pull",
+        "currency": "USD",
+        "method": "card",
+        "channel": "online",
+        "referenceId": order._id, // Set referenceId as order._id
+      });
+
+      if (!createTransaction || !createTransaction.data || !createTransaction.data.id) {
+        await Order.findByIdAndDelete(order._id);
+        return res.status(400).send({ error: 'Transaction failed, order deleted' });
+      }
+
+      // Update order with transaction details
+      order.paymentDetails = {
+        transactionId: createTransaction.data.id,
+        status: createTransaction.data.status,
+        statusReason: createTransaction.data.statusReason,
+        method: createTransaction.data.method,
+        currency: createTransaction.data.currency,
+        createdAt: createTransaction.data.createdAt,
+        channel: createTransaction.data.channel,
+      };
+
+      order.orderStatusMessage = 'Payment successful, placing order on Printful';
+      await order.save();
+
+      // Step 3: Place Order on Printful
+      const placeOrderResponse = await createPrintfulOrder(order,shipment);
+
+      if (!placeOrderResponse || !placeOrderResponse.external_id) {
+        await Order.findByIdAndDelete(order._id);
+        return res.status(500).send({ error: 'Failed to place order on Printful, order deleted' });
+      }
+
+      // Update order with Printful external ID
+      order.externalId = placeOrderResponse.external_id;
+      order.orderStatusMessage = 'Order confirmed and placed on Printful';
+      await order.save();
+
+      // Delete cart after successful order placement
+      await Cart.deleteOne({ user: user.email });
+
+      res.status(201).send(order);
+    } catch (transactionError) {
+      await Order.findByIdAndDelete(order._id);
+      return res.status(400).send({ error: 'Transaction failed, order deleted' });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(400).send({ error: error.message });
+  }
 };
 
 
+// export const NewCartBuyNow = async (req, res) => {
+//   try {
+//     const { shipmentAddress,paymentInstrumentId } = req.body;
+
+//      // Ensure payment method is present
+//      console.log(req.body.paymentInstrumentId)
+//      if (!paymentInstrumentId) {
+//       return res.status(400).send({ error: 'Payment method is missing or invalid.' });
+//     }
+//     const user = await User.findOne({ email: req.user.email });
+//     if (!user) return res.status(404).send({ error: 'User not found' });
+
+//     const cart = await Cart.findOne({ user: user.email });
+//     if (!cart) return res.status(404).send({ error: 'Cart not found' });
+
+//     let totalAmount = 0;
+//     const itemsWithDetails = [];
+
+//     for (const item of cart.items) {
+//       const product =  await axios.get(`https://api.printful.com/store/products/${item.productId}`, {
+//         headers: {
+//             Authorization: `Bearer ${process.env.printful_token}`,
+//         },
+//     });
+  
+//       if (!product) {
+//         return res.status(404).send({ error: `Product with ID ${item.productId} not found` });
+//       }
+//       console.log(cart.payementId)
+//       if(cart.payementId!=""){
+//         return res.status(400).send({ error: 'Payment already done' });
+//       }
+//       // const varproduct = product.data.result.sync_variants.filter(variant => variant.id === item.variantId);
+//       const varproduct = product.data.result.sync_variants.filter(variant => variant.id.toString() === item.variantId.toString())[0];
+
+//       const itemTotal = item.quantity * varproduct.retail_price;
+//       totalAmount += itemTotal;
+//       itemsWithDetails.push({
+//         productId: product.data.result.sync_product.id,
+//         variantId : item.variantId,
+//         quantity: item.quantity,
+//         price: varproduct.retail_price,
+//       });
+//     }
 
 
+//     const createTransaction = await Request("post","/v1/accounts/transactions",
+//       {
+//         "amount": totalAmount*100,
+//         "paymentInstrumentId": paymentInstrumentId,
+//         "accountId": "acc-c8a42bea-a708-4165-beea-e1eb95b5000a",
+//         "type": "pull",
+//         "currency": "USD",
+//         "method": "card",
+//         "channel": "online",
+//         "referenceId":cart._id,
+//     }
+//     )
+//     const ca = await Cart.findOne({user:user.email});
+//     ca.payementId = createTransaction.data.id;
+//     await ca.save();
+//     const order = new Order({
+//       user: req.user.email,
+//       items: itemsWithDetails,
+//       paymentDetails: {
+//         transactionId: createTransaction.data.id,
+//         status: createTransaction.data.status,
+//         statusReason: createTransaction.data.statusReason,
+//         method: createTransaction.data.method,
+//         currency: createTransaction.data.currency, 
+//         createdAt: createTransaction.data.createdAt,
+//         channel: createTransaction.data.channel,
+//       },
+//       shipmentAddress,
+//       shipmentCharges: 50,
+//       totalAmount,
+//       orderStatusMessage: 'Order confirmed',
+//     });
+
+//     await order.save();
+//  console.log(shipmentAddress)
+//  const placeOrderResponse = await createPrintfulOrder(order);
+
+//  if (!placeOrderResponse) {
+//    return res.status(500).send({ error: 'Failed to place order on Printful' });
+//  }
+// console.log(placeOrderResponse)
+//  order.externalId=placeOrderResponse.external_id
+//  await order.save();
+//     await Cart.deleteOne({ user: user.email });
+//     res.status(201).send(order);
+
+//   } catch (error) {
+//     console.error(error);
+//     res.status(400).send({ error: error.message });
+//   }
+// };
+
+export const NewProductBuyNow = async (req, res) => {
+  try {
+    console.log(req.body)
+    const { productId, variantId, quantity, paymentInstrumentId, shipmentAddress ,shipment} = req.body;
+
+    // Fetch user
+    const user = await User.findOne({ email: req.user.email });
+    if (!user) return res.status(404).send({ error: 'User not found' });
+    const productResponse = await axios.get(`https://api.printful.com/store/products/${productId}`, {
+      headers: {
+        Authorization: `Bearer ${process.env.printful_token}`,
+      },
+    });
+
+    const productData = productResponse.data.result;
+    const varproduct = productData.sync_variants.find(variant => variant.id.toString() === variantId.toString());
+
+    if (!varproduct) return res.status(404).send({ error: 'Variant not found' });
+    const totalAmount = varproduct.retail_price * quantity;
+
+    // Step 1: Create Order
+    const order = new Order({
+      user: user.email,
+      items: [{
+        productId: productData.sync_product.id,
+        quantity,
+        price: varproduct.retail_price,
+        variantId,
+      }],
+      shipmentAddress,
+      shipmentCharges: Number(shipment.rate),
+      totalAmount,
+      orderStatusMessage: 'Order created, awaiting payment',
+    });
+
+    await order.save();
+
+    try {
+      // Step 2: Process Payment
+      const createTransaction = await Request("post", "/v1/accounts/transactions", {
+        "amount": (totalAmount+order.shipmentCharges) * 100,
+        "paymentInstrumentId": paymentInstrumentId,
+        "accountId": "acc-c8a42bea-a708-4165-beea-e1eb95b5000a",
+        "type": "pull",
+        "currency": "USD",
+        "method": "card",
+        "channel": "online",
+        "referenceId": order._id,
+      });
+
+      if (!createTransaction || !createTransaction.data || !createTransaction.data.id) {
+        await Order.findByIdAndDelete(order._id);
+        return res.status(400).send({ error: 'Transaction failed, order deleted' });
+      }
+
+      // Update order with transaction details
+      order.paymentDetails = {
+        transactionId: createTransaction.data.id,
+        status: createTransaction.data.status,
+        statusReason: createTransaction.data.statusReason,
+        method: createTransaction.data.method,
+        currency: createTransaction.data.currency,
+        createdAt: createTransaction.data.createdAt,
+        channel: createTransaction.data.channel,
+      };
+
+      order.orderStatusMessage = 'Payment successful, placing order on Printful';
+      await order.save();
+
+      // Step 3: Place order on Printful
+      const placeOrderResponse = await createPrintfulOrder(order,shipment);
+
+      if (!placeOrderResponse || !placeOrderResponse.external_id) {
+        await Order.findByIdAndDelete(order._id);
+        return res.status(500).send({ error: 'Failed to place order on Printful, order deleted' });
+      }
+
+      // Update order with Printful order ID
+      order.externalorderId = placeOrderResponse.external_id;
+      order.orderStatusMessage = 'Order confirmed and placed on Printful';
+      await order.save();
+
+      res.status(201).send(order);
+    } catch (transactionError) {
+      await Order.findByIdAndDelete(order._id);
+      return res.status(400).send({ error: 'Transaction failed, order deleted' });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(400).send({ error: error.message });
+  }
+};
+
+
+export const getShipmentProductCost = async (req,res) => {
+  try {
+    console.log(req.body)
+    const {productId,variantId,quantity} = req.body;
+    const user = await User.findOne({ email: req.user.email });
+    if (!user) return res.status(404).send({ error: 'User not found' });
+
+    // Fetch cart
+    // const cart = await Cart.findOne({ user: user.email });
+   
+    // console.log("Getting Printful Cost...");
+
+    // Map the items and fetch product details
+    async function getSingleProductDetails(productId, variantId, quantity) {
+      try {
+        const productDetails = await fetchPrintfulProduct(productId);
+        const variant = productDetails.sync_variants.find(
+          (v) => v.id.toString() === variantId.toString()
+        );
+    
+        if (!variant) {
+          throw new Error(
+            `Variant with ID ${variantId} not found in product ${productId}`
+          );
+        }
+    
+        return {
+          sync_product_id: variant.sync_product_id,
+          variant_id: variant.variant_id,
+          name: variant.name,
+          quantity: quantity,
+          retail_price: variant.price,
+          sku: variant.sku,
+          currency: variant.currency,
+          files: variant.files.filter((file) => file.is_temporary === false) || [],
+        };
+      } catch (error) {
+        console.error(`Error fetching product details for ${productId}-${variantId}: ${error.name} - ${error.message}`);
+        return null;
+      }
+    }
+    
+    // Example Usage:
+    // const productId = 123;
+    // const variantId = 456;
+    // const item = { quantity: 2, price: 29.99 }; // Example item object
+    // const product = await getSingleProductDetails(productId, variantId, item);
+    
+    // if (product) {
+    //   console.log(product);
+    // } else {
+    //   console.log("Failed to retrieve product details.");
+    // }
+
+    // const item = await Promise.all(
+     
+    //     const productDetails = await fetchPrintfulProduct(productId);
+    //     const variant = productDetails.sync_variants.find(v => v.id.toString() === variantId.toString());
+    //     if (!variant) {
+    //       throw new Error(`Variant with ID ${variantId} not found in product ${productId}`);
+    //     }
+
+    //     return {
+    //       sync_product_id: variant.sync_product_id,
+    //       variant_id: variant.variant_id,
+    //       name:variant.name,
+    //       quantity: item.quantity,
+    //       retail_price: variant.retail_price,
+    //       sku:variant.sku,
+    //       currency:variant.currency,
+    //       files: variant.files.filter(file=> file.is_temporary === false) || [], // Include any associated files if available
+    //     };
+      
+    // );
+const item = await getSingleProductDetails(productId,variantId,quantity)
+    console.log(req.body)
+   const shipmentAddress = req.body.shipmentAddress;
+    const printfulOrderPayload = {
+      "recipient": {
+        "address1": shipmentAddress?.line1,
+        "city": shipmentAddress?.city,
+        "state_code": shipmentAddress?.state,
+        "country_code":shipmentAddress?.country,
+        "zip": shipmentAddress?.postalCode,
+        "phone": shipmentAddress?.phone || "9949837192",
+      },
+      "items":[item],
+      "currency": "USD",
+"locale": "en_US"
+    };
+console.log(printfulOrderPayload)
+    // Send the request to Printful API to place the order
+    const response = await axios.post("https://api.printful.com/shipping/rates", printfulOrderPayload, {
+      headers: {
+        Authorization: `Bearer uSSK1gMk5klqbobX3mYKkWNJvam3V7noJIkiPjId`,
+      },
+    });
+    console.log(response)
+    console.log("Order successfully created on Printful:", response.data.result);
+    return res.json(response.data.result);
+  } catch (error) {
+    // console.error("Error placing order on Printful:", error);
+    // if (error.response) {
+    //   console.error("Response Data:", error.response.data);
+    // }
+    // throw new Error("Failed to create order on Printful.");
+  }
+};

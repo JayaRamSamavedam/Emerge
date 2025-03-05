@@ -6,13 +6,15 @@ import { Link } from "react-router-dom";
 import { RequestParams,Request } from "../helpers/axios_helper";
 import Search from "antd/es/transfer/search";
 import { useNavigate } from "react-router-dom";
+import Loading from "./Loading";
 export default function Shop() {
   const navigate = useNavigate("");
     const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
      const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
      const [categories, setCategories] = useState([]);
      const [products, setProducts] = useState([]);
-     const [loading, setLoading] = useState(false);
+     const [loadingCategories, setLoadingCategories] = useState(false);
+     const [loadingProducts, setLoadingProducts] = useState(false);
      const [totalProducts, setTotalProducts] = useState(0);
      const [currentPage, setCurrentPage] = useState(1);
      const [pageSize] = useState(6);
@@ -21,8 +23,10 @@ export default function Shop() {
 
  const fetchCategories = async () => {
     try {
+      setLoadingCategories(true)
       const response = await Request("GET", "/prod/getAllCategories");
       setCategories(response.data.categories);
+      setLoadingCategories(false)
     } catch (error) {
       console.error('Error fetching categories:', error);
     }
@@ -44,9 +48,35 @@ export default function Shop() {
     }
   };
 
-
+  const fetchProductsByCategory = async (cat)=>{
+    console.log(cat)
+              const response = await RequestParams('GET',`/prod/catprod/${cat}`);
+              setTotalProducts(response.data.products.length);
+              setProducts(response.data.products);
+             
+  }
+//   const fetchProducts = async (page=1) => {
+//     try {
+     
+//       let limit=pageSize; 
+//       let offset = (page - 1) * pageSize;
+//         const response = await Request('GET', '/api/products/info',{
+//           offset:offset,
+//           limit:limit,
+//         });
+//         console.log(response)
+//         setProducts(response.data.products || []);
+//         console.log(products);
+//         setTotalProducts(response.data.paging.total);
+//     } catch (error) {
+//         console.error('Error fetching products:', error);
+//     } finally {
+//         setLoading(false);
+//     }
+// };
   const fetchProducts = async (page = 1, customFilters = filters) => {
-    setLoading(true);
+    setLoadingProducts(true);
+    console.log(customFilters)
     const response = await RequestParams("GET", "/prod/filter", {
       ...customFilters,
       page,
@@ -54,7 +84,7 @@ export default function Shop() {
     });
     setProducts(response.data.products || []);
     setTotalProducts(response.data.total);
-    setLoading(false);
+    setLoadingProducts(false);
   };
   
   useEffect(() => {
@@ -68,15 +98,26 @@ export default function Shop() {
     fetchProducts(page);
   };
 
-  const handleFilterChange = async(name, value) => {
-    setFilters((prevFilters) => ({
-      ...prevFilters,
-      [name]: value,
-    }));
-    await fetchProducts(1);
-     // Reset to first page when filters change
-   
+  const handleFilterChange = async (name, value) => {
+    setFilters((prevFilters) => {
+      const updatedFilters = {
+        ...prevFilters,
+        [name]: value,
+      };
+  
+      // Fetch products after updating the state
+      fetchProductsWithUpdatedFilters(updatedFilters);
+      return updatedFilters;
+    });
   };
+  
+  const fetchProductsWithUpdatedFilters = async (updatedFilters) => {
+    // Use the updated filters to fetch products
+    await fetchProducts(1, updatedFilters);
+  };
+  
+  // Update your fetchProducts function to accept filters as a parameter
+  
 
   const resetFilters = () => {
     setFilters({
@@ -203,7 +244,14 @@ export default function Shop() {
   <div className="justify-center grid grid-cols-2 gap-1 sm:grid-cols-3 lg:grid-cols-4">
   {/* Men Category */}
 
-  {categories.map((cat) => (
+  {loadingCategories ? <div className="w-screen">
+    <div className="flex space-x-2 justify-center items-center h-10 dark:invert">
+                <span className="sr-only">Loading...</span>
+                <div className="h-8 w-8 bg-black rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                <div className="h-8 w-8 bg-black rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                <div className="h-8 w-8 bg-black rounded-full animate-bounce"></div>
+              </div>
+  </div> :categories.map((cat) => (
   <a onClick={()=>{
     
       navigate(`/products?category=${encodeURIComponent(cat.name)}`);
@@ -367,12 +415,20 @@ export default function Shop() {
       </div>
       
     </motion.div>
+    {loadingProducts ? <div className="justify-items-center w-full">
+    <div className="flex space-x-2 justify-center items-center  dark:invert">
+                <span className="sr-only">Loading...</span>
+                <div className="h-8 w-8 bg-black rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                <div className="h-8 w-8 bg-black rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                <div className="h-8 w-8 bg-black rounded-full animate-bounce"></div>
+              </div>
+  </div> :
     <div className="mt-6 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8 ">
   <AnimatePresence>
     {products.length > 0 ? (
       products.map((product) => (
         <motion.div
-          key={product._id}
+          key={product.id}
           className="group relative"
           variants={fadeIn}
           initial="hidden"
@@ -381,22 +437,22 @@ export default function Shop() {
         >
           <div className="aspect-w-1 aspect-h-1 w-full overflow-hidden rounded-md bg-white dark:bg-gray-700 lg:h-80">
             <img
-              src={product.coverImage}
-              alt={product.coverImage}
+              src={product.thumbnail_url}
+              alt={product.name}
               className="h-full w-full object-cover object-center"
             />
           </div>
           <div className="mt-4 flex justify-between">
             <div>
               <h3 className="text-sm text-gray-700 dark:text-gray-300">
-                <Link to={`/productInfo/${product.productId}`}>
+                <Link to={`/printfull/${product.id}`}>
                   <span aria-hidden="true" className="absolute inset-0" />
                   {product.name}
                 </Link>
               </h3>
             </div>
             <p className="text-sm font-medium text-gray-900 dark:text-white">
-              {product.price}
+               ${product.price} 
             </p>
           </div>
         </motion.div>
@@ -405,7 +461,9 @@ export default function Shop() {
       <p>No products available.</p>
     )}
   </AnimatePresence>
+ 
 </div>
+}
 
         </div>
       </motion.section>
@@ -524,18 +582,18 @@ export default function Shop() {
                 <input
                   type="checkbox"
                   className="form-checkbox h-4 w-4 text-primary-600"
-                  checked={filters.colors.includes(color.colorname)}
+                  checked={filters.colors.includes(color.name)}
                   onChange={(e) =>
                     handleFilterChange(
                       'colors',
                       e.target.checked
-                        ? [...filters.colors, color.colorname]
-                        : filters.colors.filter((c) => c !== color.colorname)
+                        ? [...filters.colors, color.name]
+                        : filters.colors.filter((c) => c !== color.name)
                     )
                   }
                 />
                 <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">
-                  {color.colorname} {/* Render the color name */}
+                  {color.name} {/* Render the color name */}
                 </span>
               </label>
             ))}
@@ -577,7 +635,7 @@ export default function Shop() {
         <button
           type="submit"
           className="rounded-lg bg-primary-700 px-5 py-2.5 text-sm font-medium text-black hover:bg-primary-800 focus:outline-none focus:ring-4 focus:ring-primary-300 dark:bg-primary-700 dark:hover:bg-primary-800 dark:focus:ring-primary-800"
-          onClick={() => fetchProducts(1)}
+          onClick={() => setIsFilterModalOpen(false)}
         >
           Apply Filters
         </button>

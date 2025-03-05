@@ -6,9 +6,10 @@ import requestLogger from '../middlewares/requestlogger.js';
 
 
 const router = express.Router();
-
-router.post("/orders/cart-buy-now",verifyAuthToken,requestLogger,controller.CartBuyNow);
-router.post("/orders/buy-now",verifyAuthToken,requestLogger,controller.ProductBuyNow);
+router.post("/order/prcharges",verifyAuthToken,requestLogger,controller.getShipmentProductCost)
+router.post("/orders/charges",verifyAuthToken,requestLogger,controller.getShipmentcost);
+router.post("/orders/cart-buy-now",verifyAuthToken,requestLogger,controller.NewCartBuyNow);
+router.post("/orders/buy-now",verifyAuthToken,requestLogger,controller.NewProductBuyNow);
 router.get("/orders/:orderId/bill",requestLogger,controller.orderBill);
 router.get("/admin/getallorders",verifyAuthToken,requestLogger,checkRoleAccess,controller.getAllOrders);
 router.post('/orders/confirm-payment',verifyAuthToken,requestLogger,controller.confirmPayment);

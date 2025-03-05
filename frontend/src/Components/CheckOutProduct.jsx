@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React,{useState,useEffect} from 'react'
 import {
   Button,
   List,
@@ -11,17 +11,34 @@ import {
 } from "antd";
 import { DeleteOutlined } from "@ant-design/icons";
 import { Request } from "../helpers/axios_helper";
-import { useNavigate } from "react-router-dom";
 
-const Cart = () => {
-  const navigate = useNavigate();
+const CheckOutProduct = ({ shippingCost, productId,variantId ,quantity,increment,decrement}) => {
   const [cartItems, setCartItems] = useState([]); // Initialize as an empty array
   const [loading, setLoading] = useState(false);
   const [totalCost, setTotalCost] = useState(0);
+  const [product,setProduct] = useState(null);
+  // Fetch the cart details when the component mounts
   useEffect(() => {
-    fetchCartDetails();
+    fetchProduct();
   }, []);
 
+   const fetchProduct = async () => {
+      try {
+        const response = await Request("GET", `/api/products/${productId}`);
+        const productDetails = response.data.productDetails;
+
+        console.log(productDetails)
+        const variants = productDetails.sync_variants
+        // If variants are fetched, set the initial variant data
+        if (productDetails.sync_variants.length > 0) {
+          const initialVariant = productDetails.sync_variants.find(v => v.id.toString() === variantId.toString());
+          setProduct(initialVariant);
+        }
+      } catch (error) {
+        console.error('Error fetching product:', error);
+      } 
+    };
+  // Function to fetch cart details from the server
   const fetchCartDetails = async () => {
     setLoading(true);
     try {
@@ -40,6 +57,7 @@ const Cart = () => {
     }
   };
 
+  // Function to increment quantity
   const incrementQuantity = async (productId, variantId) => {
     try {
       await Request("PUT", `/cart/increment/${productId}`, {
@@ -81,22 +99,8 @@ const Cart = () => {
       message.error("Failed to remove item");
     }
   };
-
-  // Function to clear the entire cart
-  const clearCart = async () => {
-    try {
-      await Request("POST", "/cart/clear");
-      fetchCartDetails(); // Refresh the cart after clearing
-      message.success("Cart cleared");
-    } catch (error) {
-      message.error("Failed to clear cart");
-    }
-  };
-
   return (
-    <div className={`container mx-auto p-8 mt-20`}>
-      <h1 className="text-4xl font-bold text-center mb-8">Your Cart</h1>
-
+    <div className={`container mx-auto p-8 mt-0`}>
       {loading ? (
         <div className="flex space-x-2 justify-center items-center h-screen dark:invert">
           <span className="sr-only">Loading...</span>
@@ -104,90 +108,73 @@ const Cart = () => {
           <div className="h-8 w-8 bg-black rounded-full animate-bounce [animation-delay:-0.15s]"></div>
           <div className="h-8 w-8 bg-black rounded-full animate-bounce"></div>
         </div>
-      ) : cartItems.length === 0 ? ( // Handle empty cart case
+      ) : !product ? (
         <div className="flex justify-center items-center h-64">
           <p className="text-xl text-gray-600">Your cart is empty</p>
         </div>
       ) : (
         <>
-          <List
-            grid={{ gutter: 16, column: 1 }}
-            dataSource={cartItems}
-            renderItem={(item) => (
-              <List.Item>
-                <Card
+          <Card
                   style={{ width: "100%", padding: "20px" }}
                   actions={[
                     <Button
-                      onClick={() =>
-                        decrementQuantity(
-                          item.productId,
-                          item.quantity,
-                          item.variantId
-                        )
-                      }
-                      disabled={item.quantity <= 1}
+                      onClick={decrement}
+                      disabled={quantity <= 1}
                     >
                       -
                     </Button>,
-                    <InputNumber min={1} value={item.quantity} readOnly />,
+                    <InputNumber min={1} value={quantity} readOnly />,
                     <Button
-                      onClick={() =>
-                        incrementQuantity(item.productId, item.variantId)
-                      }
+                     onClick={increment}
                     >
                       +
-                    </Button>,
-                    <Popconfirm
-                      title="Are you sure to remove this product?"
-                      onConfirm={() =>
-                        removeItemFromCart(item.productId, item.variantId)
-                      }
-                      okText="Yes"
-                      cancelText="No"
-                    >
-                      <Button icon={<DeleteOutlined />} />
-                    </Popconfirm>,
+                    </Button>, <Popconfirm
+                                          title="Are you sure to remove this product?"
+                                         
+                                          okText="Yes"
+                                          cancelText="No"
+                                        >
+                                          <Button icon={<DeleteOutlined />} />
+                                        </Popconfirm>,
                   ]}
                 >
                   <Row gutter={[16, 16]} align="middle">
                     <Col span={4} className="text-center">
                       <img
-                        src={item.coverImage}
-                        alt={item.name}
-                        style={{ width: "80px", objectFit: "cover" }}
+                        src={product.files[1].preview_url}
+                        alt={product.name}
+                        style={{ width: "100%", objectFit: "cover" }}
                       />
                     </Col>
                     <Col span={16}>
-                      <h3 className="text-xl font-semibold">{item.name}</h3>
-                      <p className="text-gray-600">Price: ${item.price}</p>
+                      <h3 className="text-xl font-semibold">{product.name}</h3>
+                      <p className="text-gray-600">Price: ${product.retail_price}</p>
                       <p className="text-gray-600">
-                        Total: ${(item.price * item.quantity).toFixed(2)}
+                        Total: ${(product.retail_price * quantity).toFixed(2)}
                       </p>
                     </Col>
                   </Row>
                 </Card>
-              </List.Item>
-            )}
-          />
 
           <div className="cart-summary text-center mt-8">
-            <h3 className="text-2xl font-bold">
-              Total Cost: ${totalCost.toFixed(2)}
-            </h3>
-
-            <div className="mt-4 flex justify-center space-x-4">
-              <Button type="primary" danger onClick={clearCart}>
-                Clear Cart
-              </Button>
-              <Button
-                type="primary"
-                onClick={() =>
-                  navigate("/checkout", { state: { fromCart: true } })
-                }
-              >
-                Checkout
-              </Button>
+            <div className="flex flex-col w-full">
+              <div className="flex flex-row justify-between">
+                <h1>Sub total</h1>
+                <h1> ${Number(product?.retail_price).toFixed(2) * quantity}</h1>
+              </div>
+              <div className="flex flex-row justify-between">
+                <h1>Shipping Charges</h1>
+                <h1>
+                  {shippingCost ? `$${shippingCost}` : "add address"}
+                </h1>
+              </div>
+              {shippingCost && <div className="flex flex-row justify-between border-t-2 pt-2">
+                <h1>Total Charges</h1>
+                <h1>
+                  ${Number(shippingCost)+(Number(product?.retail_price).toFixed(2)*quantity)}
+                </h1>
+              </div>}
+              
             </div>
           </div>
         </>
@@ -196,4 +183,6 @@ const Cart = () => {
   );
 };
 
-export default Cart;
+export default CheckOutProduct;
+
+

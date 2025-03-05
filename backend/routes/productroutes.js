@@ -15,7 +15,7 @@ router.get('/colors', controller.getAllColors);
 router.get('/prod/colors', controller.getAllColors);      // Get all colors
 router.get('/colors/:id', controller.getColorById);       // Get color by ID
 router.put('/colors', controller.editColor); 
-router.put("/admin/prod/edit/:id",verifyAuthToken,requestLogger,checkRoleAccess,controller.editProduct);
+router.put("/admin/prod/edit/:id",verifyAuthToken,requestLogger,checkRoleAccess,controller.editPrintFullProduct);
 router.post("/admin/prod/cat",verifyAuthToken,requestLogger,checkRoleAccess,controller.createCategory);
 // router.post("/admin/prod/item",verifyAuthToken,requestLogger,checkRoleAccess,controller.createItemType);
 router.post ("/admin/prod/create",verifyAuthToken,requestLogger,checkRoleAccess,controller.createProduct);
@@ -87,4 +87,6 @@ router.post("/prod/addAndRemoveFav/:productId",verifyAuthToken,requestLogger,che
 router.get("/prod/getFavourites",verifyAuthToken,requestLogger,checkRoleAccess,controller.FavouriteProducts);
 router.post("/prod/addfav",verifyAuthToken,requestLogger,controller.addToFav);
 router.post("/prod/remfav",verifyAuthToken,requestLogger,controller.remToFav);
+router.post("/admin/prod/addcatprod",verifyAuthToken,requestLogger,controller.AddProductToCategory);
+router.get("/prod/catprod/:catname",requestLogger,controller.getProductsByCategoryPrintfull);
 export default router;

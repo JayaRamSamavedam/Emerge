@@ -1,126 +1,192 @@
 import Donation from '../schema/donationSchema.js';
-import RecurringDonation from '../schema/recurranceDonationSchema.js';
-import Stripe from 'stripe';
-const stripe = new Stripe(process.env.stripe_key);
+import ScheduledDonations from '../schema/donationScheduleSchema.js';
+import User from '../schema/userSchema.js';
+import axios from 'axios';
+import { Request } from '../helpers/axios_helpers.js';
+import Order from '../schema/ordersSchema.js';
 
-export const createOneTimeDonation = async (req, res) => {
-    const { user, amount, currency = 'USD', paymentMethodId } = req.body;
+// export const createDonation = async (req,res)=>{
+
+//     console.log(req.body);
+//     const {ministry,amount,instrumentId,donationType} = req.body;
+//     try{
+//          const user = await User.findOne({ email: "jayaram.samavedam1@gmail.com" });
+//          if (!user) return res.status(404).send({ error: 'User not found' });
+//          const donation = new Donation({
+//             user:"jayaram.samavedam1@gmail.com",
+//             ministry:ministry,
+//             amount:amount*100
+//          })
+//          await donation.save();
+//          const createTransaction = await Request("post","/v1/accounts/transactions",
+//             {
+//               "amount": amount,
+//               "paymentInstrumentId": instrumentId,
+//               "accountId": "acc-c8a42bea-a708-4165-beea-e1eb95b5000a",
+//               "type": "pull",
+//               "currency": "USD",
+//               "method": "card",
+//               "channel": "online",
+//               "referenceId":`${donation._id}`,
+//           }
+//           )
+//           if(createTransaction.status==200){
+//             if(donationType === 'one-time'){
+//                 donation.transactionId = createTransaction.data.id;
+//                 donation.isRecurring = false;
+//                 await donation.save();
+//                 console.log(donation);
+//             }
+//             else{
+//                 donation.transactionId = createTransaction.data.id;
+//                 donation.isRecurring = true;
+//                 await donation.save();
+//                 const donationScheduleSchema = new ScheduledDonations({
+//                     user:"jayaram.samavedam1@gmail.com",
+//                     ministry:donation.ministry,
+//                     amount:donation.amount,
+//                     currency:donation.currency,
+//                     paymentInstrumentId:instrumentId,
+//                     isActive:true,
+//                 });
+//                 await donationScheduleSchema.save();
+//             }
+//           }else{
+//             console.log(donation._id);
+//             await Donation.findByIdAndDelete(donation._id);
+//           }
+//           console.log(createTransaction)
+//           return res.status(200)
+//     }
+//     catch(error){
+//         console.error(error);
+//         console.log("hi")
+//         res.status(400).send({ error: error.message });
+//     }
+// }
+export const createDonation = async (req, res) => {
+    console.log(req.body);
+    const { ministry, amount, instrumentId, donationType } = req.body;
+
+    let donation = null; // Declare donation reference outside try block
 
     try {
-        // Create a payment intent for dynamic amount
-        const paymentIntent = await stripe.paymentIntents.create({
-            amount: amount * 100, // Stripe uses the smallest unit (cents for USD)
-            currency,
-            payment_method: paymentMethodId,
-            confirm: true
-        });
+        const user = await User.findOne({ email: req.user.email });
+        if (!user) {
+            console.log("User not found");
+            return res.status(404).send({ error: 'User not found' });
+        }
 
-        // Store the donation in the database
-        const donation = new Donation({
-            user,
-            amount,
-            currency,
-            stripePaymentId: paymentIntent.id,
-            isRecurring: false
+        donation = new Donation({
+            user: req.user.email,
+            ministry: ministry,
+            amount: amount, // Convert amount to cents if needed
         });
 
         await donation.save();
+        console.log("Donation saved:", donation);
 
-        res.status(201).json({
-            message: 'One-time donation successful',
-            donation
-        });
-    } catch (error) {
-        res.status(400).json({
-            message: 'Failed to process donation',
-            error: error.message
-        });
-    }
-};
-
-export const createRecurringDonation = async (req, res) => {
-    const { user, amount, currency = 'USD', paymentMethodId, frequency = 'monthly' } = req.body;
-
-    try {
-        // Create a Stripe customer
-        const customer = await stripe.customers.create({
-            payment_method: paymentMethodId,
-            email: req.body.email, // If the user's email is provided
-            invoice_settings: {
-                default_payment_method: paymentMethodId,
-            },
+        const createTransaction = await Request("post", "/v1/accounts/transactions", {
+            "amount": amount*100, // Assuming the API requires the original amount, not cents
+            "paymentInstrumentId": instrumentId,
+            "accountId": "acc-c8a42bea-a708-4165-beea-e1eb95b5000a",
+            "type": "pull",
+            "currency": "USD",
+            "method": "card",
+            "channel": "online",
+            "referenceId": `${donation._id}`,
         });
 
-        // Dynamically create a price for this subscription
-        const price = await stripe.prices.create({
-            unit_amount: amount * 100, // Stripe uses the smallest unit
-            currency,
-            recurring: { interval: frequency }, // Frequency can be monthly, yearly, etc.
-            product_data: {
-                name: `Custom donation of ${amount} ${currency}`, // Description for the product
+        if (createTransaction.status === 200) {
+            if (donationType === 'one-time') {
+                donation.transactionId = createTransaction.data.id;
+                donation.isRecurring = false;
+                await donation.save();
+                console.log("One-time donation completed:", donation);
+            } else {
+                donation.transactionId = createTransaction.data.id;
+                donation.isRecurring = true;
+                await donation.save();
+
+                const donationScheduleSchema = new ScheduledDonations({
+                    user: user.email,
+                    ministry: donation.ministry,
+                    amount: donation.amount,
+                    currency: "USD",
+                    paymentInstrumentId: instrumentId,
+                    isActive: true,
+                });
+                await donationScheduleSchema.save();
+                console.log("Recurring donation scheduled:", donationScheduleSchema);
             }
-        });
+            return res.status(200).send({"message":"donation successfull"})
+        } else {
+            throw new Error("Transaction failed with status: " + createTransaction.status);
+        }
 
-        // Create a subscription with the dynamically created price
-        const subscription = await stripe.subscriptions.create({
-            customer: customer.id,
-            items: [{ price: price.id }],
-            default_payment_method: paymentMethodId,
-        });
-
-        // Store the recurring donation in the database
-        const recurringDonation = new RecurringDonation({
-            user,
-            amount,
-            currency,
-            stripeSubscriptionId: subscription.id,
-            frequency,
-        });
-
-        await recurringDonation.save();
-
-        res.status(201).json({
-            message: 'Recurring donation successful',
-            recurringDonation
-        });
+        return res.status(200).send({ message: 'Donation created successfully' });
     } catch (error) {
-        res.status(400).json({
-            message: 'Failed to process recurring donation',
-            error: error.message
-        });
+        console.error("Error in createDonation:", error);
+
+        // Re-throw the error after logging if required
+        return res.status(400).send({ error: error.message });
+    } finally {
+        // Ensure donation is deleted if an error occurred and it was created
+        if (donation && !donation.transactionId) {
+            try {
+                console.log("Deleting incomplete donation:", donation._id);
+                await Donation.findByIdAndDelete(donation._id);
+                console.log("Incomplete donation deleted successfully.");
+            } catch (deleteError) {
+                console.error("Failed to delete incomplete donation:", deleteError);
+            }
+        }
     }
 };
 
+export const getDonations = async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1; // Default to page 1
+        const limit = parseInt(req.query.limit) || 10; // Default to 10 items per page
+        const skip = (page - 1) * limit;
 
+        const donations = await Donation.find({ user: req.user.email })
+            .skip(skip)
+            .limit(limit)
+            .sort({ createdAt: -1 }); // Sort by latest donations
 
-// One-time and recurring donation Checkout session
-export const createCheckoutSession = async (req, res) => {
-  const { amount, recurring, email, currency = 'USD' } = req.body;
+        const total = await Donation.countDocuments({ user: req.user.email }); // Total count for pagination
 
-  try {
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      customer_email: email,
-      line_items: [
-        {
-          price_data: {
-            currency: currency,
-            product_data: {
-              name: 'Donation',
-            },
-            unit_amount: amount * 100, // Convert to cents
-            recurring: recurring ? { interval: 'month' } : undefined, // Recurring or one-time
-          },
-          quantity: 1,
-        },
-      ],
-      mode: recurring ? 'subscription' : 'payment', // Payment mode changes for one-time or recurring
-      success_url: `http://localhost:3000/success`,
-      cancel_url: `http://localhost:3000/cancel`,
-    });
-
-    res.status(200).json({ id: session.id });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+        return res.status(200).json({
+            donations,
+            total,
+            page,
+            pages: Math.ceil(total / limit),
+        });
+    } catch (exception) {
+        return res.status(400).json({ message: exception.message });
+    }
 };
+
+export const getScheduledDonations = async(req,res) => {
+    try {
+        const page = parseInt(req.query.page) || 1; // Default to page 1
+        const limit = parseInt(req.query.limit) || 10; // Default to 10 items per page
+        const skip = (page - 1) * limit;
+        const donations = await ScheduledDonations.find({ user: req.user.email })
+            .skip(skip)
+            .limit(limit)
+            .sort({ createdAt: -1 }); // Sort by latest donations
+
+        const total = await ScheduledDonations.countDocuments({ user: req.user.email }); // Total count for pagination
+        return res.status(200).json({
+            donations,
+            total,
+            page,
+            pages: Math.ceil(total / limit),
+        });
+    } catch (exception) {
+        return res.status(400).json({ message: exception.message });
+    }
+
+}
